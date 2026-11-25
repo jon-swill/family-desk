@@ -15,7 +15,7 @@ The run proved account, positions, both stream acks, quotes for all 5 symbols an
 | Subscription ack, news stream | **pass**: news SPY, QQQ, IWM, AAPL, MSFT | seq 28 |
 | Quotes for all 5 symbols with update rate and spread | **pass**: table below | summary `quotes.per_symbol` |
 | ≥1 watchlist item from the startup REST news GET | **pass**: 6 items, 6 on the watchlist | summary `news_rest_items`, `news_rest_watchlist` |
-| Stream news or a logged "no news" heartbeat | **pass**: 0 stream items, 34 heartbeats (one per 60 s, "connection alive"), 0 disconnects | summary `news_stream` |
+| Stream news or a logged "no news" heartbeat | **pass as written, but unproven under P-02**: 0 stream items, 34 heartbeats, 0 disconnects. REST shows 0 watchlist items in the window (19 non-watchlist), so nothing was missed, but the stream never had a positive case (see News) | summary `news_stream` |
 | EDGAR cycles with pre-filter entry count > 0 | **FAIL**: cycles 1, ok_cycles 0, pre_filter min/max `null`; poller died (see below) | summary `edgar`; record `error` stage `edgar` (seq 1535454) |
 | EDGAR post-filter AAPL/MSFT match count, labelled "feed live + filter tested offline" | **not shown** (no completed cycle) | summary `edgar.matches_total` 0 |
 | Measured EDGAR request rate ≤ 1/s | **pass but vacuous**: 1 request in total (company_tickers.json), max 1 in any 1 s, `mean_rps` null (needs ≥ 2 requests) | summary `edgar` |
@@ -88,8 +88,34 @@ Corrected for a +0.52 s offset, the median receive delay is about 8 to 12 ms aft
 
 ## News
 
-- Startup REST GET (24 h lookback, limit 50): 6 items, all 6 tagged with a watchlist symbol (AAPL 2, MSFT 4), all with source `fiscal.ai`, newest created 14:31:27Z (09:31 ET).
-- Stream: 0 items in 35 minutes; 34 heartbeats. **This is a quiet window, not a fault.** The agent cross-checked afterwards with a read-only REST GET (3 h lookback, same 5 symbols): no watchlist item was created between 15:09:36Z and 15:44:37Z. The only item in the 3 hours was the 14:31Z one above. Six items in 24 hours is about one every 4 hours, so a 35-minute window with none is the likely outcome (plan risk R5).
+The owner asked (2026-11-25) for the stream's 0 items to be treated as a suspected P-02 failure, not a quiet market. The checks below were made after the run with read-only REST GETs from the spike's own client (metadata only; no headline text printed or stored).
+
+**Startup REST GET** (24 h lookback, limit 50): 6 items, all 6 tagged with a watchlist symbol (AAPL 2, MSFT 4), all with source `fiscal.ai`, newest created 14:31:27Z (09:31 ET).
+
+**REST count for the run window** (explicit `start`/`end`, `sort=asc`, every page fetched):
+
+| Window | Filter | Items | Pages | Created in window | Tagged with a watchlist symbol | Sources |
+|---|---|---|---|---|---|---|
+| Owner's window, 10:12–10:47 ET (15:12–15:47Z) | watchlist (5 symbols) | 0 | 1 | 0 | 0 | none |
+| Owner's window | no symbol filter | 19 | 1 | 19 | 0 | `fiscal.ai` 19 |
+| Run window, 10:09:36–10:44:39 ET | watchlist | 0 | 1 | 0 | 0 | none |
+| Run window | no symbol filter | 19 | 1 | 19 | 0 | `fiscal.ai` 19 |
+
+**Subscribe message and ack.** The client sends `{"action":"subscribe","news":["SPY","QQQ","IWM","AAPL","MSFT"]}` (`src/family_desk_spike/data/news_stream.py`, `subscribe={"news": list(monitor.symbols)}`), not `"*"`. The logged ack (seq 28) is `{"T":"subscription","news":["SPY","QQQ","IWM","AAPL","MSFT"]}`, so the server accepted the 5-symbol list. Stream counters: 1 connect, 0 disconnects, 0 errors, 3 frames (connected, authenticated, subscription), 0 news frames.
+
+**What Alpaca's documentation says** (all accessed 2026-11-25):
+- The real-time news page gives the stream URL `wss://stream.data.alpaca.markets/v1beta1/news`. Its example subscribes with `{"action":"subscribe","news":["*"]}` and shows the ack `[{"T":"subscription","news":["*"]}]`. It says nothing about which plans include the news stream or about any delay ([Alpaca: Real-time news](https://docs.alpaca.markets/us/docs/streaming-real-time-news), page updated 2026-11-24).
+- The market-data overview describes the Basic (free) plan as "limited real-time data: for equities only the IEX exchange". Its plan tables have no news row ([Alpaca: About market data API](https://docs.alpaca.markets/us/docs/about-market-data-api), updated 2026-11-24). The FAQ doesn't cover news either ([Alpaca: Market data FAQ](https://docs.alpaca.markets/us/docs/market-data-faq)).
+- REST news: the default `end` is "the current time if the user has a real-time access for the feed, otherwise 15 minutes before the current time". A 403 means "the subscription does not cover the requested data". The page doesn't say whether `start`/`end` filter on `created_at` or `updated_at`; sorting is "by updated date" ([Alpaca: News reference](https://docs.alpaca.markets/us/reference/news-3), updated 2026-05-27).
+- None of the five pages documents an error code for a plan that isn't entitled to the news stream. So **whether the free plan streams news in real time, with a delay, or at all is not stated by Alpaca.** NEWS_AND_DATA_STACK had already marked this unverifiable (A2).
+
+**Probe of this key's news delay.** A REST GET with no `end` and no symbol filter (newest first, 16:53:58Z) returned 10 items, the newest 21.1 minutes old. At the roughly 0.5 items/min seen above, an empty last 15 minutes is unlikely. The result fits the documented 15-minute default `end` for keys without real-time access. It suggests this key's REST news is delayed by at least 15 minutes; it doesn't prove it.
+
+**Conclusion.** REST shows **no watchlist news created in the window**, while the same API returned 19 non-watchlist items in it. So the REST news path was live, and REST agrees with the stream's 0. That rules out "REST had items the stream missed". It **does not prove the stream delivers**: the run never had a positive case on the stream, and only the subscription ack and the heartbeats (which show the socket is open) support it. Under P-02 / R-42, the stream's silence in run 1 is **unproven, not healthy**. The cross-check added in `785c383` would have recorded run 1 as `no_positive_case`, not `ok`.
+
+**Check added (commit `785c383`).** Every 5 minutes and once at shutdown, the runner compares REST watchlist items created since the stream started (up to now minus a 16-minute grace, to allow for the REST delay above) with the ids the stream delivered. It logs `news.cross_check` with a verdict: `ok`, `partial`, `stall` (REST has items, the stream delivered none) or `no_positive_case`. On `stall` or `partial` it also logs `news.stall` (ids only) and prints a `STALL:` line. The summary reports `news_stream.cross_check`. Limit: with a 16-minute grace, a 35-minute run only judges items created in its first ~19 minutes.
+
+**Owner option for run 2 (not done).** To give the stream a real positive case, subscribe with `"*"` (the documented example) and count unfiltered items as liveness, keeping only watchlist items' metadata. That is the same pattern as EDGAR's pre-filter count. It changes what the stream receives, so it is the owner's call.
 
 ## EDGAR: what failed and the fix
 
