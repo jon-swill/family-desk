@@ -1,0 +1,38 @@
+# Phase 1 read-only spike config. Its sha256 is committed in spike.toml.sha256;
+# the startup check refuses to run if they differ. Regenerate the hash with
+#   python -m family_desk_spike.tools.config_hash
+# Endpoint values from docs/research/NEWS_AND_DATA_STACK.md (A2).
+
+[alpaca]
+trading_base_url = "https://paper-api.alpaca.markets"
+data_base_url = "https://data.alpaca.markets"
+stock_stream_url = "wss://stream.data.alpaca.markets/v2/iex"
+news_stream_url = "wss://stream.data.alpaca.markets/v1beta1/news"
+
+[watchlist]
+symbols = ["SPY", "QQQ", "IWM", "AAPL", "MSFT"]
+
+[news]
+rest_lookback_hours = 24
+rest_limit = 50
+
+[streams]
+stale_after_seconds = 60
+backoff_initial_seconds = 1.0
+backoff_max_seconds = 60.0
+connection_limit_backoff_seconds = 60.0
+
+[edgar]
+base_url = "https://www.sec.gov"
+symbols = ["AAPL", "MSFT"]
+poll_seconds = 60
+max_requests_per_second = 1.0
+feed_count = 100
+block_backoff_seconds = 600
+
+[run]
+earliest_start_et = "10:00"
+end_buffer_minutes = 30
+
+[log]
+dir = "logs/spike"
