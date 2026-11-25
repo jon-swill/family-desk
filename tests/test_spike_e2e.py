@@ -13,6 +13,7 @@ import pytest
 
 from family_desk_spike.applog import verify_lines
 from family_desk_spike.data.stream_client import WebSocketLike
+from family_desk_spike.net.readonly_http import HttpResponse
 from family_desk_spike.runner import (
     EXIT_ERROR,
     EXIT_INTERRUPTED,
@@ -309,3 +310,34 @@ def test_account_missing_required_field_refuses_cleanly(tmp_path: Path) -> None:
     assert drift["missing_required"] == ["trading_blocked"]  # type: ignore[index]
     assert "PA0000000000" not in text
     assert [c[0] for c in http.calls] == [f"{PAPER}/v2/clock", f"{PAPER}/v2/account"]
+
+
+@dataclass
+class EdgarExplodes(FakeHttp):
+    """The EDGAR feed request raises a non-network error, killing the poller task."""
+
+    async def get(self, url: str, **kw: object) -> HttpResponse:  # type: ignore[override]
+        if url == f"{SEC}/cgi-bin/browse-edgar":
+            await asyncio.sleep(0)
+            raise RuntimeError("boom")
+        return await super().get(url, **kw)  # type: ignore[arg-type]
+
+
+def test_dead_source_task_is_logged_when_it_dies(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Regression for B10 run 1 (2026-11-25): the EDGAR poller died on its first poll and
+    the error was logged only at shutdown, 35 minutes later (P-02)."""
+    base = _http()
+    http = EdgarExplodes(routes=base.routes)
+    state, recs, text = Harness(tmp_path, http=http).run()
+    assert state.exit_code == EXIT_ERROR, state.lines
+    assert verify_lines(text).ok
+    src = _sources(recs)
+    errors = [i for i, s in enumerate(src) if s == "error"]
+    assert len(errors) == 1  # logged once, not again at shutdown
+    assert recs[errors[0]]["payload"] == {"stage": "edgar", "detail": "RuntimeError('boom')"}
+    last_quote = max(i for i, s in enumerate(src) if s == "quote")
+    assert errors[0] < last_quote  # logged while the streams were still running
+    assert recs[-1]["payload"]["task_failures"] == {"edgar": "RuntimeError('boom')"}  # type: ignore[index]
+    assert "ERROR: source task 'edgar' died" in capsys.readouterr().out

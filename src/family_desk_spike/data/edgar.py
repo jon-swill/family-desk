@@ -35,10 +35,15 @@ from family_desk_spike.parse.edgar import (
 BROWSE_PATH = "/cgi-bin/browse-edgar"
 TICKERS_PATH = "/files/company_tickers.json"
 BLOCK_STATUSES = frozenset({403, 429})
+MIN_TOKEN_SLEEP_S = 0.02  # > one Windows clock tick (15.6 ms)
 
 
 class MissingUserAgentError(ValueError):
     pass
+
+
+class SecStoppedError(RuntimeError):
+    """The run is stopping; no SEC request was sent."""
 
 
 def getcurrent_params(count: int) -> dict[str, str]:
@@ -71,16 +76,25 @@ class RateLimitedSec:
     sleep: Sleep
     bucket: TokenBucket
     meter: RateMeter = field(default_factory=RateMeter)
+    stop: asyncio.Event | None = None  # set = never send; give up the token wait
 
     def __post_init__(self) -> None:
         sec_headers(self.user_agent)  # refuse to start without a UA
 
     async def get(self, path: str, params: dict[str, str] | None = None) -> HttpResponse:
-        wait = self.bucket.wait_time(self.clock.monotonic())
-        if wait > 0:
-            await self.sleep(wait)
-        self.bucket.take(self.clock.monotonic())
-        self.meter.record(self.clock.monotonic())
+        # Re-check after every sleep: a timer may wake early (Windows asyncio timers can
+        # fire up to one ~15.6 ms clock tick early), so one sleep of `wait_time` seconds
+        # does not guarantee a whole token. B10 run 1 died here on its first poll. Each
+        # sleep is at least MIN_TOKEN_SLEEP_S, longer than one tick, so the loop always
+        # makes progress instead of spinning on a sub-tick remainder.
+        now = self.clock.monotonic()
+        while (wait := self.bucket.wait_time(now)) > 0:
+            if self.stop is not None and self.stop.is_set():
+                raise SecStoppedError("stop requested while waiting for a rate-limit token")
+            await self.sleep(max(wait, MIN_TOKEN_SLEEP_S))
+            now = self.clock.monotonic()
+        self.bucket.take(now)
+        self.meter.record(now)
         return await self.http.get(
             self.base_url.rstrip("/") + path, params=params, headers=sec_headers(self.user_agent)
         )
@@ -157,13 +171,16 @@ class EdgarPoller:
 
     async def poll_once(self) -> float:
         """One cycle. Returns how long to wait before the next."""
-        self.stats.cycles += 1
         try:
             resp = await self.sec.get(BROWSE_PATH, getcurrent_params(self.cfg.feed_count))
+        except SecStoppedError:
+            return 0.0  # stopping before anything was sent; not a cycle
         except OSError as exc:
+            self.stats.cycles += 1
             self.stats.error("network")
             self.log.append("edgar.error", {"kind": "network", "detail": type(exc).__name__})
             return self._server_backoff()
+        self.stats.cycles += 1
         if resp.status in BLOCK_STATUSES:
             self.stats.error(f"http_{resp.status}")
             self.log.append(

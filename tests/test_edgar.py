@@ -271,3 +271,66 @@ def test_cik_map_cache_avoids_second_fetch(tmp_path: Path) -> None:
     maps = [r for r in recs if r["source"] == "edgar.cik_map"]  # same log file, two runs
     origin = maps[-1]["payload"]["origin"]  # type: ignore[index]
     assert origin == "cache"
+
+
+# --- B10 run 1 regression (2026-11-25): early-waking timer -----------------------------
+
+
+def _sec_early_waking(
+    fake: FakeHttp, clock: FakeClock, stop: asyncio.Event | None = None
+) -> RateLimitedSec:
+    """A sleep that wakes one Windows clock tick (15.6 ms) early, as asyncio timers can."""
+
+    async def early_sleep(seconds: float) -> None:
+        clock.sleeps.append(seconds)
+        clock.advance(max(0.0, seconds - 0.0156))
+        await asyncio.sleep(0)
+
+    return RateLimitedSec(
+        http=ReadOnlyHttp(fake),
+        base_url=SEC,
+        user_agent=FAKE_UA,
+        clock=clock,
+        sleep=early_sleep,
+        bucket=TokenBucket(rate=CFG.edgar.max_requests_per_second),
+        stop=stop,
+    )
+
+
+def test_early_waking_timer_never_raises_and_keeps_one_per_second() -> None:
+    """Run 1 died with "no token available" on the poll right after the CIK-map request."""
+    clock = FakeClock()
+    feed = HttpResponse(200, (FIX / "edgar_getcurrent_synthetic.xml").read_bytes())
+    fake = FakeHttp().add(FEED_URL, feed)
+    sec = _sec_early_waking(fake, clock)
+
+    async def go() -> None:
+        for _ in range(50):  # back to back: every request but the first must wait
+            await sec.get("/cgi-bin/browse-edgar", getcurrent_params(CFG.edgar.feed_count))
+
+    asyncio.run(go())
+    assert len(fake.calls) == 50
+    assert sec.meter.max_in_window(1.0) == 1
+    gaps = [b - a for a, b in zip(sec.meter.times, sec.meter.times[1:], strict=False)]
+    assert min(gaps) >= 1.0 - 1e-9
+
+
+def test_stop_during_token_wait_sends_nothing(tmp_path: Path) -> None:
+    clock = FakeClock()
+    feed = HttpResponse(200, (FIX / "edgar_getcurrent_synthetic.xml").read_bytes())
+    fake = FakeHttp().add(FEED_URL, feed)
+    stop = asyncio.Event()
+    sec = _sec_early_waking(fake, clock, stop)
+    log = AppLog(tmp_path / "log.jsonl", clock=clock).open()
+    poller = EdgarPoller(sec=sec, cfg=CFG.edgar, cik_filter={}, log=log, clock=clock,
+                         stop=stop, rand=lambda: 0.5)  # fmt: skip
+
+    async def go() -> float:
+        await poller.poll_once()  # takes the only token
+        stop.set()
+        return await poller.poll_once()  # would have to wait; must give up instead
+
+    assert asyncio.run(go()) == 0.0
+    log.close()
+    assert len(fake.calls) == 1
+    assert poller.stats.cycles == 1 and poller.stats.ok_cycles == 1

@@ -278,6 +278,7 @@ async def run(
             clock=deps.clock,
             sleep=deps.sleep or _stop_aware_sleep(stop),
             bucket=TokenBucket(rate=cfg.edgar.max_requests_per_second),
+            stop=stop,
         )
         cik_filter = await load_cik_filter(sec, cfg.edgar.symbols, deps.root / CIK_CACHE, log)
 
@@ -307,24 +308,43 @@ async def run(
             asyncio.create_task(news_session.run(), name="news"),
             asyncio.create_task(state.edgar.run(), name="edgar"),
         ]
+        for t in tasks:
+            t.add_done_callback(_report_task_death(state, log))
         timer = asyncio.create_task(_timer(stop, duration_min * 60, deps.timer_sleep), name="timer")
         try:
             await stop.wait()
         finally:
             stop.set()
             timer.cancel()
-            done, pending = await asyncio.wait(tasks, timeout=15)
+            _done, pending = await asyncio.wait(tasks, timeout=15)
             for t in pending:
                 t.cancel()
-            for t in done:
-                failure = t.exception() if not t.cancelled() else None
-                if failure is not None:
-                    log.append("error", {"stage": t.get_name(), "detail": repr(failure)[:200]})
         return state.exit_code
     finally:
         if deps.close_transport is not None:
             with contextlib.suppress(Exception):
                 await deps.close_transport()
+
+
+def _report_task_death(state: RunState, log: AppLog) -> Callable[[asyncio.Task[Any]], None]:
+    """Log a source task's failure the moment it happens, never only at shutdown (P-02):
+    B10 run 1's EDGAR poller died on its first poll and nothing showed it for 35 minutes."""
+
+    def on_done(task: asyncio.Task[Any]) -> None:
+        if task.cancelled():
+            return
+        failure = task.exception()
+        if failure is None or isinstance(failure, KeyboardInterrupt):
+            return
+        name = task.get_name()
+        failures: dict[str, str] = state.facts.setdefault("task_failures", {})
+        failures[name] = repr(failure)[:200]
+        with contextlib.suppress(RuntimeError):  # log already closed
+            log.append("error", {"stage": name, "detail": repr(failure)[:200]})
+        state.say(f"ERROR: source task '{name}' died: {failure!r}"[:300])
+        state.exit_code = EXIT_ERROR
+
+    return on_done
 
 
 def _stop_aware_sleep(stop: asyncio.Event) -> Sleep:
