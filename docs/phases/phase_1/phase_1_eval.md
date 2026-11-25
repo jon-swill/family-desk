@@ -269,3 +269,85 @@ The read-only boundary is now enforced in four places: no SDK, a guard over code
 **Most likely failure if run as written.** On day one, A1 closes its first marker and goes to commit. pytest isn't installed, so the agent either commits in breach of CLAUDE.md or stops. The more consequential failure comes later, in B8. IWM resolves to the iShares Trust CIK, and during the live run some iShares Trust 8-K arrives. The spike logs it as an IWM match, and the evidence reports a positive EDGAR match. Reviewers would welcome that as the real case the first review asked for, though it is a misattribution. If the lookup instead misses SPY or QQQ, the poller fails or silently drops them, depending on code the plan doesn't specify.
 
 **Kind of remediation needed.** Wording and sequencing edits plus two small test additions (the CIK cardinality tests and the EDGAR client refusal test). There is no re-scoping and no new deliverable. Fix gap 1 before the first commit. Gaps 2–5 can be the first edits made under run-phase, with the plan and tasks updated to match.
+
+## Phase gate (G1), 2026-11-25
+
+Run by the agent at commit `b8752b2` with the `phase-gate` skill. The gate reports and fixes nothing. Code fixes made earlier in the same session, before this gate, are listed in the summary.
+
+**Verdict: HOLD.** Four gate criteria are not met: G-9 (the live spike failed on EDGAR, so a rerun is required), G-1 (the robustness check changes the engine winner, so there is no engine recommendation), G-4 (21 proposals await the owner) and G-11 (red-team and sign-off are not done). None of them can be closed by more agent work this session. Each needs an owner action, listed under "To reach ADVANCE".
+
+### 1. Quality gates (G-6)
+
+| Command | Result |
+|---|---|
+| `python -m ruff check .` | All checks passed! |
+| `python -m ruff format --check .` | 84 files already formatted |
+| `python -m mypy --strict src` | Success: no issues found in 33 source files |
+| `python -m pytest -q` | 259 passed |
+
+### 2. Exit criteria
+
+| # | Criterion | Status | Evidence |
+|---|---|---|---|
+| G-1 | Decision matrix: frozen weights, all candidates scored and cited, unverified share, robustness, sensitivity, recommendation + dissent | **partial: fails as written** | `decision_matrix.md` §6–9 (A6 `fa6e25b`, A7, A10 `66f749f`, A8 `ab9285c`; totals by script, reproduced by the gate). Engines: base NautilusTrader 332 > LEAN 310 > vectorbt 283 (near-tie, 4.4 pp). In the robustness check both unverified E-1 cells go to 0, NautilusTrader and LEAN are excluded (KO E-1) and vectorbt leads, so **no recommendation** is made. Per G-1 this is a HOLD unless the owner records at G3 that the engine choice moves to the Phase 2 install-check. Brokers: Alpaca rank 1 in base and robustness. Price feeds: IEX rank 1, provisional (two sensitivity flips to paid SIP). Company events: EDGAR rank 1 in both. Dissent present (§9.5) |
+| G-2 | Zero `[verify` markers; 11 resolved; links fixed | delivered | `grep -rn "\[verify" docs/research/*.md` → 0 lines; `verification_log.md` (A1, A2, A10 rows) |
+| G-3 | Every Evidence cell cited or `unverified (reason)` | delivered | gate count: 57 Evidence cells, 0 without a link or `unverified (` |
+| G-4 | Every proposal approved or rejected, approved ones merged | **partial** | P-01..P-06 approved and merged as F-20..F-25 / R-41..R-46 (`7cc4f7a`). P-07..P-27 (21 rows; P-26 and P-27 from this gate's failure-check) are `proposed`: **O6 open** |
+| G-5 | Alpaca free-tier terms verified | delivered | A2 rows; NEWS_AND_DATA_STACK. Still not stated by Alpaca: whether the free plan streams news, and the delayed-SIP stream on Basic (cited as unverifiable) |
+| G-6 | Quality gates green | delivered | §1 above |
+| G-7 | Guard test + runtime refusal before send | delivered, with limits | `test_no_order_paths.py`, `test_readonly_http.py` green; planted-violation demo (B2, `ede8078`). Limits found by the failure-check: WebSocket URLs are outside the allowlist, and the guard doesn't confine network libraries to one module (P-27) |
+| G-8 | Startup refuses with reason codes; refusal demo shows `host` | delivered | demo at `1e9f906`: `codes=host,config_hash,dirty_tree`, exit 2; config restored, tree clean (`spike_evidence.md`) |
+| G-9 | Live spike run | **missing: FAIL, rerun required** | Run 1 (`7c8205e`): account, positions (O7 SPY), both acks, quotes for 5 symbols, REST news 6 passed. EDGAR: 0 completed cycles (poller died; fixed in `1e9f906` and `383adf8`), so the rerun rule applies. News stream: 0 items and REST agrees (0 watchlist items in the window), but delivery is unproven (P-02); cross-check added in `785c383`. The gate re-ran `verify_log --expect-head 33ef7973…c2ff`: `chain OK`, exit 0 (a wrong anchor gives `chain FAILED`, exit 1) |
+| G-10 | Secret scan: not found everywhere | delivered | scan after the `pytest -rA` capture: `RESULT: all not found` (12 value × location pairs) |
+| G-11 | plan-review READY, phase-gate ADVANCE, red-team, owner sign-off | **partial** | plan-review READY (2026-11-25); this gate HOLD; red-team (G2) and sign-off (G3) not done |
+
+### 3. Coverage re-scored on delivered work
+
+The 35 rows of the 2026-11-25 re-review are re-scored here against what was delivered, not what was planned. Rows whose status changed:
+
+| # | Requirement | Severity | Plan re-review | Delivered | Why |
+|---|---|---|---|---|---|
+| 1 | PRD §6 Phase 1 gate | critical | full | partial | Red-team and sign-off pending; this gate is HOLD |
+| 2 | PRD §5 engine chosen | critical | full | partial | Robustness check changed the winner; no recommendation |
+| 12 | FR-8 news and filings | important | full | partial | EDGAR feed not shown live (run 1 bug); news stream has no live positive case |
+| 14 | NFR-4 never silent | important | full | partial | Run 1's dead EDGAR poller was silent for 35 min. Fixed in code (`1e9f906`, `e032bb4`); not yet proven live |
+| 19 | R-13 self-check | important | full | partial | Clean-tree check excludes `pyproject.toml` and the lock files; stream URLs not asserted (failure-check) |
+| 21 | Extend FAILURE_LIBRARY | important | full | partial | O6 open for P-07..P-27 |
+| 31 | B1 first commit / gates before commits | important | partial | full | `b610433` was the first Phase 1 commit; gates run before every commit |
+| 32 | ETF CIK mapping | important | partial | partial | Shared multi-fund trusts are rejected, but single-ticker trusts (SPY, QQQ) classify as `unique`; only the pinned AAPL/MSFT list keeps them out (failure-check) |
+| 33 | Positions on a real payload | detail | partial | full | O7 filled; run 1 parsed the 1-share SPY position |
+| 34 | Trade-capable key in RETRO | detail | partial | full | RETRO 2026-11-25 row |
+| 35 | Library growth from reviews | detail | partial | full | P-01..P-06 in D4, approved and merged |
+
+All other rows keep their re-review status (full).
+
+| Severity | Rows | Full | Partial | Missing | Arithmetic | Score |
+|---|---|---|---|---|---|---|
+| Critical | 7 | 5 | 2 | 0 | (5 + 0.5 × 2) / 7 = 6 / 7 | **85.7%** |
+| Important | 20 | 15 | 5 | 0 | (15 + 0.5 × 5) / 20 = 17.5 / 20 | **87.5%** |
+| Detail | 8 | 8 | 0 | 0 | 8 / 8 | **100.0%** |
+| Overall | 35 | 28 | 7 | 0 | (28 + 0.5 × 7) / 35 = 31.5 / 35 | **90.0%** |
+
+### 4. Failure check on delivered work
+
+A separate reviewer agent ran it against the code and docs at `3a0c6c1`; the gate then checked its findings against later commits. Library rules R-13..R-46: 15 apply, 8 yes, 7 partial, 0 missing. Master-brief rules 1–12: 3 apply, 2 yes, 1 partial (rule 10). No applicable row is `missing`.
+
+| Rule | Finding at `3a0c6c1` | Status at `b8752b2` |
+|---|---|---|
+| R-13 | Clean-tree check covers `src` and `config` only (not `pyproject.toml` or the locks); the version check compares two strings in one tree; stream URLs not asserted | open |
+| R-21 | Redaction runs after `str(exc)[:200]` truncation; console lines are not redacted (theoretical today) | open |
+| R-22 | WebSocket URLs (which receive the key and secret) have no scheme or host check; the guard doesn't confine `httpx`/`urllib` to one module | open; proposed as P-27 |
+| R-23 | httpx and websockets errors are not `OSError`, so EDGAR died on its first timeout (probe) and a stream on a refused handshake; positions, news REST and the CIK fetch are unguarded | **fixed** for EDGAR and stream handshakes (`383adf8`; tests drive the real adapters). Unguarded startup reads still crash the run, loudly and before the streams start: open |
+| R-24 staleness | Measured as the gap between arrivals, not data age; age uses the unsynced clock | open (P-12, P-25) |
+| R-42 | A stream that returns on a fatal code is not reported, and the exit code stays 0; heartbeat without a subscription; G-9 FAIL | **fixed**: a task ending before stop is reported (`e032bb4`), and the news stream is cross-checked against REST (`785c383`). Heartbeat wording and the G-9 rerun: open |
+| R-45 | Single-ticker trust CIKs (SPY, QQQ) classify as `unique` and pass the filter | open (the config pin holds) |
+| Rule 10 | G-9 FAIL; error-path tests used exception types the real adapters never raise | partly fixed (`383adf8`); G-9 open |
+
+New patterns found: **P-26** (fakes raise different errors from the real adapter) and **P-27** (the egress allowlist covers HTTP only), both added to D4 as `proposed` (`b8752b2`). The library itself was not edited.
+
+### 5. To reach ADVANCE
+
+1. **B10 run 2** (owner): sync the PC clock, then rerun in another session. The run must show EDGAR cycles with `pre_filter_min` > 0, `mean_rps` ≤ 1, no `ERROR: source task` line, and a news cross-check verdict. The agent then adds the run 2 section and the new anchor to D18 and re-scores EDGAR DE-4 and DE-5, and phase-gate re-runs.
+2. **O6** (owner): approve or reject P-07..P-27; A9 then merges the approved ones.
+3. **G-1** (owner, at G3): either record that the engine choice moves to the Phase 2 install-check, or supply verified evidence for NautilusTrader's or LEAN's E-1 (kernel in front of every order path).
+4. **G2** red-team in a fresh session, with findings resolved; **G3** owner sign-off in RETRO.

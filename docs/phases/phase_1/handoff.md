@@ -1,48 +1,41 @@
-# Phase 1 hand-off (run-phase session, 2026-11-25)
+# Phase 1 hand-off (updated 2026-11-25, after B10 run 1 and the G1 phase-gate)
 
-Nothing was pushed. Everything below is local commits on `main`. Gates at hand-off: `ruff check`, `ruff format --check`, `mypy --strict src` green; `pytest -q` 229 passed, 1 skipped (the real AAPL fixture test, see step 2).
+Gate result: **HOLD** (`phase_1_eval.md`, `phase_1_summary.md`). Gates green at hand-off: ruff, format, `mypy --strict`, pytest 259 passed. Stop before G2 (owner instruction 2026-11-25).
 
 ## Done (agent)
-B1, B2, B3, B4, B5, B6, B7, B9, B12, A1, A2, A3, A4, A5, A6, A7. B8 is done except its real fixture (step 2). Proof for each is in `phase_1_tasks.md`.
+B1–B9, B12, A1–A8, A10, A11, G1. B11 run-1 evidence is written (`spike_evidence.md`). A9 merged the six approved proposals. Proof for each task is in `phase_1_tasks.md`.
 
 ## Waits on the owner, in order
 
-1. **O1: keys.** Confirm the paper keys were regenerated and `.env` has the 4 variables. Then run `git check-ignore .env` (it must print `.env`) and tell the agent the regeneration date (needed for A11's 90-day rotation row). Paste no values.
-
-2. **B8 fixture (reads `.env` for the SEC User-Agent, makes one SEC request).** From the repo root with the venv active:
+1. **Sync the PC clock** (admin PowerShell: right-click PowerShell → Run as administrator). Windows Time has never synced, and the clock is about 0.52 s slow:
    ```powershell
-   python -m family_desk_spike.tools.fetch_edgar_fixture
-   python -m pytest -q tests/test_edgar.py
+   w32tm /config /manualpeerlist:"time.windows.com,0x9 time.cloudflare.com,0x9" /syncfromflags:manual /update
+   Restart-Service w32time
+   w32tm /resync /force
+   w32tm /query /status          # expect a real Source and a Last Successful Sync Time
+   w32tm /stripchart /computer:time.cloudflare.com /samples:3 /dataonly   # offsets within about ±0.05 s
    ```
-   The skipped test should now pass. Tell the agent, which reviews the fixture for personal values and commits it.
+   If `/resync` fails, open Settings → Time & language → Date & time, turn on "Set time automatically", and click "Sync now".
 
-3. **O7: one manual paper order.** During market hours, in Alpaca's **paper** web dashboard, by hand: buy 1 SPY, **limit**, day order, limit at or just above the ask. Never market. No code is involved. Tell the agent "filled" or "not filled".
-
-4. **B10: live spike run.** Valid windows: start at or after 10:00 ET, and end by `next_close` − 30 min. Thu 26 Nov is Thanksgiving, so the market is closed. Fri 27 Nov is a half-day closing at 13:00 ET, so a 35-minute run must start between 10:00 and 11:55 ET. From Mon 30 Nov, a run can start between 10:00 and 14:55 ET. The runner refuses outside these windows; there is no override.
+2. **B10 run 2** (another session; the G-9 rerun rule applies because EDGAR failed in run 1). Fri 27 Nov is a half-day, so start between 10:00 and 11:55 ET. From Mon 30 Nov, start between 10:00 and 14:55 ET. From the repo root with the venv active:
    ```powershell
-   # a) Refusal demo (wrong host; refused before any network call)
-   (Get-Content config\spike.toml -Raw).Replace('https://paper-api.alpaca.markets','https://wrong-host.invalid') | Set-Content -NoNewline config\spike.toml
-   python -m family_desk_spike --duration-min 35      # expect: startup REFUSED codes=host,config_hash,dirty_tree
-   git checkout -- config
-   git status --porcelain -- src config               # must print nothing
-   # b) Real run (about 35 minutes; Ctrl+C is safe and still writes the summary)
+   git pull                                   # if run from a fresh clone
+   git status --porcelain -- src config       # must print nothing
    python -m family_desk_spike --duration-min 35
    python -m family_desk_spike.verify_log logs\spike\<YYYY-MM-DD>.jsonl
    ```
-   Save both outputs (they hold counts and hashes, no secrets), or paste them to the agent for B11. **Rerun rule (G-9):** if `news_rest_watchlist=0`, or `pre_filter_min` and `pre_filter_max` are both 0, the run fails. Do a new run on another day; the criterion is never relaxed.
+   A pass shows `edgar cycles` near 35 with `pre_filter_min` > 0, a numeric `mean_rps` ≤ 1, `news_rest_watchlist` ≥ 1, a `news_stream` cross-check entry, and no `ERROR: source task` or `STALL:` line. Paste both outputs to the agent.
 
-5. **O6: failure proposals.** Approve or reject P-07 to P-18 in `docs/research/failure_library_proposals.md`, from A4. A9 then merges the approved ones.
+3. **O6:** approve or reject P-07 to P-27 in `docs/research/failure_library_proposals.md`. The new ones from today are P-23 (schema drift), P-24 (silent worker death), P-25 (unsynced clock), P-26 (fakes raise different errors from the real adapter) and P-27 (egress allowlist covers HTTP only).
 
-6. **O3** (Phase 0 decisions table): done 2026-11-25. Paper-test values are in `docs/phases/phase_0/decisions.md`. Its §5 lists the points the agent flagged for the owner. Do not make a new $35k Alpaca paper account until B10 has passed (see §4 of that file).
+4. **Engine choice (G-1, decided at G3).** The robustness check excludes NautilusTrader and LEAN, because neither documents a kernel choke point in front of every order path (E-1, a knock-out). So the matrix makes no engine recommendation. Choose one: (a) record that the engine choice moves to the Phase 2 install-check (an install needs your explicit approval), or (b) ask for E-1 to be verified first.
+
+5. **G2 red-team** in a fresh session, then **G3 sign-off** in RETRO.
 
 ## Decisions the agents raised (owner's call)
-- **A5 matrix method:** (a) the data table is split into price feeds and company-event sources, ranked separately; (b) a knock-out (KO) rule was added: a 0 on a KO criterion excludes the candidate; (c) G-1's HOLD rule is read as applying to the engine recommendation only, while a broker or data rank flip is published as "not robust". Confirm or override.
-- **A3 evidence contradictions** (Evidence cells corrected; "Why it might work" columns left alone): turn-of-month "fund flows" is rejected by McConnell & Xu 2008; volatility targeting has no systematic out-of-sample edge (Cederburg et al. 2020); SMA crossover is not significant out-of-sample (Sullivan et al. 1999); time-series momentum is weak asset by asset (Huang et al. 2020); opening-range breakout results rely on 3x ETFs, which are on our blocklist.
-- **A1:** the F-14 figure changed from "1.1% earned more than minimum wage" (not found in any readable source) to "0.4% earned more than a bank teller", from the abstract. F-10 got a wording fix. Neither changes a rule.
-- **A2:** (a) free-plan news may be delayed 15 minutes; the spike's real timestamps will show it; (b) news now also comes from `fiscal.ai`, not only Benzinga; (c) AS-16 is false, as the two Atom formats differ (the parser handles both); (d) whether the free plan can use the delayed-SIP stream is unverified.
-
-- **A6 engines:** both packaged engines (NautilusTrader, LEAN) have built-in exit paths that send market orders (`close_all_positions`, `liquidate`, margin-call liquidation) and no documented way to put our kernel in front of them. Under the robustness check that is a knock-out (E-1), so A8 may end with no engine pick, unless you move the choice to the Phase 2 install-check. LEAN local/on-prem live trading appears to need a paid tier. NautilusTrader v2 needs Python 3.13 or later (the repo pins 3.12).
-- **A7 brokers:** Schwab's developer portal and interactivebrokers.com refused automated reads, so 9 Schwab and 2 IBKR cells are `unverified`. You can close them by reading those pages in a browser; the robustness check sets them to the worst score, and Schwab's B-1 and B-2 then knock it out. Read-only keys: Alpaca none, Robinhood none, IBKR only as a local TWS setting, Schwab unknown. Robinhood's customer agreement §29.1 needs written consent for "Licensee Products", and it is unclear whether a deterministic order client counts.
+- **News stream:** to give the stream a real positive case in run 2, it could subscribe with `"*"` and count unfiltered items as liveness, keeping only watchlist metadata. This changes what the stream receives. It is not done.
+- **A10:** do you hold a live Alpaca account? Alpaca's IEX-only rule is worded for "Paper Only Account" holders, and it decides the delayed-SIP DP-1 and both SIP DP-9 cells. Also: where R-27's indicative values should come from (no documented free source), and whether polling Apple's newsroom RSS is acceptable under Apple's site terms.
+- **Earlier, still open:** the A5 matrix method choices, and the A3/A6/A7 notes in the previous hand-off (git history of this file, commit `839fca9`).
 
 ## Next agent tasks once the above is done
-B8 fixture commit → B11 (evidence, `pytest -rA` capture, secret scan) → A10 (data scores with spike measurements) → A8 (totals, robustness, sensitivity, dissent) → A9 (after O6) → A11 (after O1 and O7) → G1 phase-gate.
+B11 run 2 section and new anchor → re-score EDGAR DE-4/DE-5 (and A8 if a total moves) → A9 for O6-approved rows → re-run G1.
