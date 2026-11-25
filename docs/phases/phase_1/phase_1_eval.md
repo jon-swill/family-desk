@@ -135,3 +135,137 @@ The process gap has the same shape. The owner's choice to run Phase 0 alongside 
 **Most likely failure if run as written.** The EDGAR path is "proven" with zero real matches. The Atom feed gives 10-digit zero-padded CIKs, while `company_tickers.json` gives integers, so a padding mismatch would make the watchlist filter match nothing. On a 35-minute window with no AAPL/MSFT 8-K, that result looks exactly like a correct one. G-9 then passes on "≥1 poll cycle", and `verify_log` prints `chain OK`. Phase 3 would be built on a filings path that has never matched a real filing. The news stream carries the same risk through the heartbeat clause.
 
 **Kind of remediation needed.** Small, targeted edits to the gate criteria and about six tasks, plus one RETRO row from the owner. No re-scoping, no new deliverables beyond the secret scanner, and no change to the sequence. After the five top gaps are fixed, rows 2, 5, 6, 12 and 15 move to full. That brings critical to 100% and overall to about 91.7% ((25 + 0.5 × 5) / 30), so a re-review should return READY.
+
+## Plan re-review (revision 2), 2026-11-25
+
+Reviewed: `docs/phases/phase_1/phase_1_plan.md` revision 2 (and `phase_1_tasks.md`) against `docs/PRD.md` v0.2, `docs/RETRO.md` (now with the Phase 0 sign-off and the owner corrections of 2026-11-24), `docs/MASTER_BRIEF.md`, `docs/COMPLIANCE.md`, `docs/research/FAILURE_LIBRARY.md`, `docs/HANDOFF.md` (with its supersession note), `CLAUDE.md` and `.claude/rules/trading-invariants.md`.
+
+Plan claims checked against the repo: there are 11 `[verify` markers (7 in FAILURE_LIBRARY, 4 in NEWS_AND_DATA_STACK). The explanatory mentions are on FAILURE_LIBRARY lines 3 and 97. `.gitattributes` pins `eol=lf`, so config hashes are stable on Windows. A `pre-push` hook is present. The `.env` variable names in TONIGHT.md step 7 match the four that B3 reads. All commit author emails are noreply addresses, so the G-10 history scan will not trip on commit headers. There is no `src/`, `tests/` or `config/` yet, and pytest is not installed (AS-1).
+
+**Verdict: READY.** Critical coverage is 100%, overall coverage is 92.9% (≥ 85%), and no applicable failure-check row is `missing`. Revision 2 closes all five top gaps from the first review and nearly all of the small ones. What remains are seam gaps between documents and process. Gap 1 below must be fixed before the phase makes its first commit. The other four can be folded into the first tasks.
+
+### 1. Coverage table
+
+Rows 1–30 keep the numbering of the first review so the two can be compared. Rows 31–35 are new findings. Requirements deferred correctly are again left out of the score: FR-1/2, FR-4/5, FR-7, FR-9, FR-11–26, the NFR-3 secrets manager and NFR-8.
+
+| # | Requirement | Severity | Coverage | Evidence (plan section) | Gap |
+|---|---|---|---|---|---|
+| 1 | PRD §6 Phase 1 gate | critical | full | G-1, G-11; §4 G1–G3 | none |
+| 2 | PRD §5: engine chosen in Phase 1 | critical | full | G-1 (unverified share, worst-case robustness, provisional label accepted at G3); D6; A5–A8; R6 | The plan doesn't say what happens if the robustness check blocks a recommendation (see small gaps) |
+| 3 | NFR-1 / inv. 1 / hard stop: no route to an order | critical | full | G-7; D8 (code + locks, non-GET anywhere in `src/`); D12 runtime refusal before send; B2 | The EDGAR client (`www.sec.gov`) has no (host, path) allowlist and is covered only by the static scan (see small gaps) |
+| 4 | NFR-3 / inv. 17: paper endpoint asserted | critical | full | G-8; D9; B3 refusal cases; B10 demo | The live wrong-host demo trips the config-hash check first (see small gaps) |
+| 5 | Hard stop / NFR-3: secrets never read out, printed or committed | critical | full | G-10 full-value scan of both Alpaca secrets + the UA contact over history, files, logs, docs, pytest `-rA`; D20; `test_secret_scan.py`, `test_redaction.py` | G-10's wording ("personal value") is broader than what it checks (see small gaps) |
+| 6 | No phase starts without an owner sign-off in RETRO | critical | full | RETRO row 2026-11-24 "Phase 0 signed off"; §4 note | none |
+| 7 | RETRO debt: regenerate paper keys before the spike | critical | full | O1 blocks B10; A11 records the date | none |
+| 8 | C-3 / R-40 / inv. 18: restricted list | important | full | §6 C-3; RETRO 2026-11-24 (list starts empty, owner-maintained) | none |
+| 9 | FR-3: one broker interface; candidates compared | important | full | D12 `ReadOnlyBroker`; D6; non-goal keeps the live choice open | none |
+| 10 | PRD §6: data choice | important | full | D6 data-source section (IEX, delayed SIP, paid SIP ranked only, news options, iNAV); A10 uses spike measurements | none |
+| 11 | FR-6: strategy evidence re-verified | important | full | D5, A3, G-3 | none |
+| 12 | FR-8: news and filings ingestion | important | full | G-9 subscription acks, REST news GET ≥ 1 item, EDGAR pre-filter count > 0; D15 CIK padding test | ETF-specific gap in row 32 |
+| 13 | FR-10: data staleness | important | full | D13; B6 stall detection | none |
+| 14 | NFR-4: outages and disconnects never silent | important | full | B6–B8; D16 Windows-safe shutdown tested in e2e | none |
+| 15 | NFR-6 / C-10: append-only, reproducible log | important | full | D10 `seq_last`/`head_hash`/`--expect-head`; D18 anchor; G1 re-verifies | none |
+| 16 | NFR-7 / C-7: data terms and rate limits | important | full | 60 s cadence under a ≤ 1 rps ceiling; A2; metadata-only news | none |
+| 17 | C-6: official APIs only | important | full | §6; Do-not | none |
+| 18 | NFR-3 / rule 11: pinned, hashed dependencies | important | full | D7; B2 scans the locks | none |
+| 19 | R-13 / inv. 17: version + config self-check | important | full | G-8 (pyproject version, clean tree, commit hash; drift-only limit stated); A11 signing debt | The version check compares the package with its own pyproject. That is weak, but the limit is stated and the clean tree plus commit hash do the real binding |
+| 20 | Resolve every `[verify]` | important | full | G-2 (11 markers, `\[verify` pattern, rewording, link fixes incl. F-14 and dev.to) | none |
+| 21 | Extend FAILURE_LIBRARY | important | full | D4, A4, O6, A9 | See row 35 |
+| 22 | Re-verify Alpaca free-tier terms | important | full | A2, G-5, D3 | none |
+| 23 | MASTER_BRIEF working rules (alternatives, skeptic, cite) | important | full | A5 frozen weights + worst-case definitions; A8 robustness, sensitivity, dissent | none |
+| 24 | Rule 6 / inv. 6: external text is data | important | full | B7, D14, defusedxml, field caps | none |
+| 25 | Engineering stance (fakes, tests, gates) | important | full | D7, D17, G-6 | See row 31 |
+| 26 | NFR-5: cost | detail | full | Do-not | none |
+| 27 | Deferred items written as RETRO debt | detail | full | A11 / D21 | See row 34 |
+| 28 | C-1/2/4/8/11 as broker facts | detail | full | §6; A7 | none |
+| 29 | Owner rows tracked | detail | full | O1–O3; O4/O5 moved to RETRO debt | none |
+| 30 | Run window (inv. 14 / R-24 analogue) | detail | full | G-9; D16; `test_run_window.py` (half-day) | none |
+| 31 | CLAUDE.md: "`python -m pytest -q` must pass before any commit" | important | partial | A1/A2 "one commit per closed marker", with no dependency on B1 | A1 and A2 start on day one and commit per marker. pytest isn't installed until B1 (AS-1), and once it is, an empty suite exits with code 5. Every Track A commit made before B1 therefore breaks CLAUDE.md, or the agent stalls |
+| 32 | FR-8 correctness: watchlist-to-CIK mapping for ETFs | important | partial | B8 (CIK map from `company_tickers.json`); §2 FR-8 row ("each proven on a real positive case") | Three of the five symbols (SPY, QQQ, IWM) are fund trusts, not operating companies. Fund trusts rarely or never file 8-Ks, may be missing from `company_tickers.json` (not checked in this review), or share one trust CIK across many funds. iShares Trust is the obvious case, so any iShares Trust 8-K would be logged as an IWM match. The plan doesn't define behaviour for missing or shared CIKs, and the §2 claim overstates EDGAR's proof, which is feed liveness plus a synthetic filter test |
+| 33 | FR-3 / G-9: positions read proven on a real payload | detail | partial | G-9 "Recorded: … positions"; D11 fixtures | A paper account that nothing can trade holds no positions. The live read returns `[]`, so the Position parser never meets a real non-empty payload, and the evidence looks the same whether the parser is right or wrong |
+| 34 | R-21 / first-review proposal: trade-capable key recorded as accepted risk | detail | partial | §5 row 2 "noted as accepted risk for the spike" | A11's list of RETRO rows doesn't include it, so the accepted risk lives only in the plan |
+| 35 | FAILURE_LIBRARY growth from reviews | detail | partial | D4 sources: post-mortems, broker incidents, "spike-found patterns" | The four failure entries proposed in the first review (unanchored audit trail, vacuous liveness, spike code promoted, trade-capable key) drove half of revision 2. They are not routed into D4, so O6 never decides them and the library never learns them |
+
+### 2. Failure check
+
+Nothing is built yet. "Tested?" names the planned test.
+
+| Entry | Rule | Applies? | Control present? | Tested? | Evidence |
+|---|---|---|---|---|---|
+| F-01 Knight | R-13 version/config self-check | yes | yes (drift-only, stated) | planned: `tests/test_startup.py` | G-8, D9, B3; A11 signing debt |
+| F-01 | R-14 no dead code / bypass flags | yes | yes | planned: `tests/test_no_order_paths.py` (outside-import guard) | AS-14 throwaway package, no bypass flag, A11 deletion row |
+| F-01 | R-15 self-halt on aberrant behaviour | analogue (request rate, reconnects) | yes (analogue) | planned: `tests/test_ratelimit.py`, `tests/test_iex_stream.py` | B6, B8 |
+| F-01 | R-16 page a human | no: no alert channel until Phase 3 | n/a | n/a | §5 "Not applicable" |
+| F-02 | R-17/18/19 | no for code (no backtests) | n/a | n/a | A3 out-of-sample notes |
+| F-03 | R-20 | yes (research) | yes | G-3 count | D5 publication year |
+| F-04 3Commas | R-21 keys, rotation, IP allowlist | yes | partial | planned: `test_config.py`, `test_redaction.py`, `test_secret_scan.py` | O1 + A11 rotation date; IP allowlist is a matrix criterion only; trade-capable key not recorded in RETRO (row 34); secrets manager is Phase 3 debt |
+| F-04 | R-22 kernel allowlist/floor | no kernel; path allowlist is the analogue | analogue | planned: `tests/test_alpaca_readonly.py` | D12 (EDGAR client not covered, see small gaps) |
+| F-05 | R-23 outages → halt, log | yes | yes | planned: stream and EDGAR tests | B6–B8, §5 |
+| F-06 | R-24 session edges | yes (run window) | yes | planned: `tests/test_run_window.py` | D16, G-9 |
+| F-07 | R-25/26/27 | no orders; R-26 support and R-27 iNAV are matrix criteria | n/a | n/a | D6, A7 |
+| F-08 | R-28/29/30 | no (no LLM in code) | n/a | n/a | Non-goals |
+| F-09 | R-31 | yes (research) | yes | document review | §5 |
+| F-10–F-13 | R-32–R-35 | no (no positions or strategies); A1 verifies the entries | n/a | n/a | A1 |
+| F-14–F-16 | R-36–R-38 | no | n/a | n/a | — |
+| F-17 | R-39 | yes (broker scoring) | yes | n/a | A5 SIPC criterion |
+| F-18 | R-12 | no (cost-basis export is a broker criterion only) | n/a | n/a | A7 |
+| F-19 | R-40 | no: no orders; mechanism kept, list empty | n/a | n/a | §6 C-3 |
+
+No applicable row is `missing`. R-21 is the only partial.
+
+**Proposed new failure entries.** These are for the owner to approve. The library has not been edited. The four from the first review should go into D4 as well (row 35).
+
+- **Proposed F-xx: shared-identifier attribution.** One issuer identifier can cover many instruments: a fund trust's CIK spans dozens of ETFs, and a ticker maps to the trust. Matching on it attributes an event to the wrong symbol, and the wrong match is welcomed as the positive case everyone was waiting for. *Proposed rule:* every symbol-to-identifier map records cardinality (unique, shared, none). Shared or missing identifiers never attribute an event to a single symbol unless a second key, such as a series or class ID, also matches.
+- **Proposed F-xx: a shadowed safety check.** A demo or test meant to show check X trips check Y first. X is then never shown working live, yet the evidence reads as if it were. *Proposed rule:* every refusal reports a specific reason code (or the full list of failed checks), and every refusal demo asserts the code it intends to prove.
+
+### 3. Scores
+
+Formula: score = (full + 0.5 × partial) / total × 100.
+
+| Severity | Rows | Full | Partial | Missing | Arithmetic | Score |
+|---|---|---|---|---|---|---|
+| Critical | 7 | 7 | 0 | 0 | (7 + 0.5 × 0) / 7 = 7 / 7 | **100.0%** |
+| Important | 20 | 18 | 2 | 0 | (18 + 0.5 × 2) / 20 = 19 / 20 | **95.0%** |
+| Detail | 8 | 5 | 3 | 0 | (5 + 0.5 × 3) / 8 = 6.5 / 8 | **81.3%** |
+| Overall | 35 | 30 | 5 | 0 | (30 + 0.5 × 5) / 35 = 32.5 / 35 | **92.9%** |
+
+On the first review's 30 rows alone, the score is 30 / 30 = 100%. The partial rows are all new findings.
+
+### 4. Top five gaps (none critical)
+
+1. **Track A commits come before the quality gate exists (row 31, important).** *Fix:* make B1 the phase's first commit. A1/A2 research can start at once, but their per-marker commits wait until B1's skeleton passes all four gates, including at least one real test so pytest doesn't exit with code 5. The alternative is for the owner to record a docs-only commit exception in RETRO. Fix this before the first commit.
+2. **ETF symbols in the 8-K CIK filter (row 32, important).** *Fix:* in B8, the CIK map records each symbol as unique operating-company CIK, shared trust CIK, or none. Only unique CIKs drive the 8-K match. SPY, QQQ and IWM are logged as `no 8-K filter (fund)`, and the plan doesn't fail on them. Add tests for a shared CIK and a missing ticker. Reword the §2 FR-8 row: news is proven on a real positive case; EDGAR is proven by feed liveness plus a unit-tested filter.
+3. **The first review's failure proposals are not routed (row 35, detail).** *Fix:* add those four entries, plus the two above, to D4 so O6 decides them and A9 merges the approved ones.
+4. **The accepted risk of the trade-capable paper key is not in RETRO (row 34, detail).** *Fix:* add a row to A11: "paper key can trade; read-only enforced by code guards only; revisit when A7 finds a read-only key option".
+5. **The positions read is vacuous (row 33, detail).** *Fix:* D18 states that the Position parser is proven on fixtures only, and A11 adds a Phase 3 debt row to re-verify it on a real payload. Optionally, the owner can place one small manual paper buy in Alpaca's web dashboard before B10 to give a real non-empty payload. That is the owner's call; no code is involved.
+
+**Remaining gaps, all small:**
+- **Robustness has no fallback branch.** G-1 says that if the robustness check changes the winner, no recommendation is made, but not what follows. State it: G-1 then fails (HOLD), or the owner records at G3 that the engine choice moves to the Phase 2 install-check. Also say what happens if the ±50% sensitivity check flips the winner: it is reported in the dissent and the recommendation stays labelled provisional.
+- **The wrong-host demo is shadowed.** The host lives in `config/spike.toml`, because only four env vars exist. Editing it trips the config-hash and dirty-tree checks before the host check, so B10's demo never shows the host check live. Have the startup check report every failed check with a reason code, and make the evidence show `host` among them. Restore the config with `git checkout -- config` before the real run. The clean-tree check enforces this.
+- **The EDGAR client has no runtime allowlist.** Route EDGAR and `company_tickers.json` through the same GET-only (host, path) allowlisted client as D12, with a refusal test, so G-7's runtime guarantee covers every outbound client.
+- **G-10 claims more than it checks.** It says "no secret or personal value", but it scans three values, and tracked docs name the owner and spouse by design. Narrow the wording to the three values. Specify how the email is taken out of `SEC_USER_AGENT`, and test that step.
+- **G-9 has no rerun rule.** If the REST news GET returns 0 items or the EDGAR pre-filter count is 0, the fix is a new run on another session, never a relaxed criterion.
+
+### 5. Narrative
+
+**Posture.** Revision 2 is a well-executed fix pass. Every top gap from the first review is closed with a check that proves its claim:
+- The log is anchored, and the anchor is re-verified at the gate.
+- The secret scan checks full values.
+- The engine recommendation must survive a worst-case pass over its unverified cells.
+- The run window is derived from `next_close`.
+- Silence on the data paths no longer counts as proof.
+
+The read-only boundary is now enforced in four places: no SDK, a guard over code and locks, a runtime refusal before send, and an isolated throwaway package.
+
+**Strengths.**
+- The plan is honest about its limits. It calls the config hash drift-only, labels the engine choice provisional, and calls the spike code throwaway.
+- No bypass flag exists, and off-hours behaviour lives only in tests.
+- Windows-specific failure modes (Proactor signals, LF hashing, OneDrive) are anticipated.
+- Owner corrections from RETRO are carried consistently through the plan, the tasks and the assumptions.
+- Evidence holds counts only.
+
+**Weaknesses (the pattern).** The remaining gaps sit at the seams. Some are between documents: review proposals not routed into D4, an accepted risk not written into RETRO, CLAUDE.md's commit rule against Track A's sequencing. Others are between the plan and its own inputs: the final watchlist is 60% ETFs, and the filings path was designed for operating companies. In a few places a claim still slightly outruns its check: the §2 "real positive case" wording, G-10's "personal value", and the wrong-host demo.
+
+**Most likely failure if run as written.** On day one, A1 closes its first marker and goes to commit. pytest isn't installed, so the agent either commits in breach of CLAUDE.md or stops. The more consequential failure comes later, in B8. IWM resolves to the iShares Trust CIK, and during the live run some iShares Trust 8-K arrives. The spike logs it as an IWM match, and the evidence reports a positive EDGAR match. Reviewers would welcome that as the real case the first review asked for, though it is a misattribution. If the lookup instead misses SPY or QQQ, the poller fails or silently drops them, depending on code the plan doesn't specify.
+
+**Kind of remediation needed.** Wording and sequencing edits plus two small test additions (the CIK cardinality tests and the EDGAR client refusal test). There is no re-scoping and no new deliverable. Fix gap 1 before the first commit. Gaps 2–5 can be the first edits made under run-phase, with the plan and tasks updated to match.

@@ -20,6 +20,7 @@ Greenfield (2026-11-24). Planning done in claude.ai: "Family Trading Desk — Pr
 | 2026-11-24 | Employer personal-trading policy check removed. Spike watchlist is final: SPY, QQQ, IWM, AAPL, MSFT | Replaces the Phase 1 O2 check |
 | 2026-11-24 | Restricted-list mechanism kept (COMPLIANCE C-3, trading invariant 18): the list starts empty and is owner-maintained; no employer-policy check | C-3 and invariant 18 updated |
 | 2026-11-24 | CPA review moved to before the Phase 6 real-money gate: CPA inputs for the tax-reserve model and the CPA sign-off (formerly a Phase 2 gate item). The Phase 2 tax model is built from published federal and NJ rules and labelled "not CPA-reviewed" until then | PRD v0.2 §6 Phase 2 and Phase 6 gates updated |
+| 2026-11-25 | Alpaca paper key has trading scope; accepted for Phase 1 because the code has no order route and the account is paper. Revisit before Phase 3. | From the Phase 1 plan re-review (`phase_1_eval.md`, 2026-11-25) |
 
 ## Known debt
 
