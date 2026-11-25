@@ -10,7 +10,7 @@ This file holds limits, rules and owner planning figures only. It holds no accou
 
 | ID | Decision | Paper-test value | PRD |
 |---|---|---|---|
-| D-01 | Auto-trade cap ($X): Tier A notional limit per trade | **$250 per trade.** Anything bigger waits for owner approval (Tier B) | FR-15, FR-16 |
+| D-01 | Auto-trade cap ($X): Tier A notional limit per trade | **$1,000 per trade** (raised from $250 by the owner on 2026-11-25; effective 2026-11-26 after the 24-hour cooling-off for risk-up changes). Anything bigger waits for owner approval (Tier B). The 1% risk cap (D-11) still binds: a $1,000 entry with $50 at risk needs a stop within 5% | FR-15, FR-16 |
 | D-02 | Paper desk total | **~$35,000.** Reset the Alpaca paper balance to match if Alpaca allows it; otherwise scale every report to $35k (see §4) | FR-1, FR-24 |
 | D-03 | Active sleeve size (paper) | **$5,000**, the amount the owner would start live with | FR-1, FR-2 |
 | D-04 | Core size (paper) | The rest of the desk (~$30,000). Index and long-term holdings only | FR-1 |
@@ -36,7 +36,9 @@ Parameters not set by the owner yet are not filled in here. Examples are the ris
 ## 2. Tracks and the experiment
 
 ### Manual paper-options learning track (D-17)
-- **Defined-risk only:** long calls, long puts, debit spreads, and covered calls on shares already held.
+- **Defined-risk only:** long calls, long puts, debit spreads, and covered calls on **sleeve** shares already held, never core shares (owner, 2026-11-25).
+- **Maximum loss per trade: $50**, the same 1% sleeve cap as D-11 (owner, 2026-11-25).
+- **Separate Alpaca paper account** for options learning, so manual trades never appear in the account the automation reconciles (owner, 2026-11-25). Its trades count against the sleeve limits by manual entry.
 - Every trade is placed by hand. No code places or routes options.
 - Each trade logs its maximum loss at entry and counts against the sleeve limits (D-07 to D-12).
 - Each week there is a short "what I learned" note, saved with the weekly check-in.
@@ -55,7 +57,8 @@ Parameters not set by the owner yet are not filled in here. Examples are the ris
 - **Benchmark:** arm C.
 - **Kill criterion:** an arm that does not beat C after costs and estimated taxes is not adopted as a strategy (invariant 7).
 - **Still to freeze before any data is looked at:** the dip definition, the profit target, B's stop distance, the ETF and stock lists, the test window and the tax assumptions. The Phase 2 phase-plan proposes them for owner approval. They are frozen in writing before the Phase 4 backtest runs (R-17 pre-registration; R-18 holdout).
-- **Schedule:** a point-in-time backtest in Phase 4, then a forward run in Phase 5 paper trading.
+- **Execution (owner, 2026-11-25):** all three arms are simulated on paper market data and forward-logged, with no broker orders. Arm A therefore never sits in the sleeve without a stop (D-13), and the arms stay comparable.
+- **Schedule:** a point-in-time backtest in Phase 4, then a forward simulated run alongside Phase 5 paper trading.
 
 ## 3. The $1M math
 
@@ -106,19 +109,24 @@ It gives no minimum or maximum balance and no limit on the number of accounts. O
 
 ## 5. Points flagged for the owner
 
-These are agent findings, not decisions. They are carried as RETRO debt.
+Agent findings. Points 1–5 were answered by the owner on 2026-11-25 (answers below each). Points 6–8 are still RETRO debt.
 
 1. **E-1 arm A has no stop, but D-13 makes stops mandatory in the sleeve.**
    - Proposal: run all three E-1 arms as simulations on paper market data, forward-logged, with no broker orders. Arm A then never sits in the sleeve without a stop, and the arms stay comparable.
    - Arm A is also the disposition effect described in FAILURE_LIBRARY F-15, which is why it is worth testing rather than assuming.
+   - **Owner answer: yes, simulate all arms.**
 2. **Covered calls "on shares already held":**
    - Assignment sells the shares, so covered calls on core shares would break D-14. Proposal: sleeve shares only.
    - A covered call needs 100 shares. At a $5k sleeve with 1% risk ($50), that fits only low-priced stocks. The share leg's downside also counts against D-11.
+   - **Owner answer: yes, sleeve shares only.**
 3. **Options sizing under D-11:** counting options against the sleeve limits caps each options trade's maximum loss at $50 at a $5k sleeve. Please confirm that the learning track uses the same 1% cap, rather than a separate learning cap.
+   - **Owner answer: yes, $50 maximum loss per options trade.**
 4. **A separate paper account for options learning:**
    - Manual options trades in the same paper account the automation reads would break its reconciliation (invariant 9), because it would see positions it did not create.
    - Proposal: a separate Alpaca paper account, if Alpaca allows it (§4). Its trades are entered into the ledger by hand and counted against the sleeve limits.
+   - **Owner answer: yes, a separate options paper account.**
 5. **$250 cap vs sleeve shape:** five positions in a $5k sleeve average $1k each. Most full-size sleeve entries will therefore go to approval (Tier B), so approval is the normal path in paper, not the exception.
+   - **Owner answer: raise the paper-test cap to $1,000 (D-01) and revisit it at the live gate.** Consequence: up to the full $5k sleeve (5 × $1,000) can now be deployed without an approval. It is still bounded by D-07 to D-12.
 6. **Loss-limit definitions:** the exact baseline for each limit is a Phase 2 SPEC item:
    - "day" and "week": prior-close equity, and equity at the start of the week;
    - "peak": a running high-water mark, and whether it resets each year to match "annual tolerance";

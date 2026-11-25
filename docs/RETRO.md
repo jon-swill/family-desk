@@ -31,6 +31,8 @@ Greenfield (2026-11-24). Planning done in claude.ai: "Family Trading Desk — Pr
 | 2026-11-25 | Long-term picture: ~$30–40k desk in year 1, ~$150k after a year if it performs, ~$1M goal in 5–6 years, not super aggressive. Risk is never tuned to chase it (D-18; math in decisions.md §3) | PRD §1 |
 | 2026-11-25 | Reports: a daily one-line push; a Sunday weekly report and check-in form; a monthly review with a settings form; a quarterly sleeve-size form. Each under 2 minutes; answers saved in `docs/checkins/` (D-19) | FR-24, FR-26 |
 | 2026-11-25 | Experiment E-1 ("take small profits, never sell below cost basis", arms A/B/C) is pre-registered as a paper experiment (D-20) | FR-31 |
+| 2026-11-25 | Owner answers to decisions.md §5: (1) all E-1 arms are simulated, with no broker orders; (2) covered calls on sleeve shares only; (3) options maximum loss $50 per trade, and a separate options paper account | FR-14, FR-31 |
+| 2026-11-25 | **Paper-test auto-trade cap raised from $250 to $1,000 per trade (D-01)**, effective 2026-11-26 after the 24-hour cooling-off for risk-up changes. Revisit at the live gate | FR-15; supersedes the $250 in the D-01 row above |
 
 ## Known debt
 
@@ -39,8 +41,8 @@ Greenfield (2026-11-24). Planning done in claude.ai: "Family Trading Desk — Pr
 | Revisit every paper-test value in `docs/phases/phase_0/decisions.md` | owner | At the Phase 6 live gate, before any real money |
 | Parameters still unset: Y% and N minutes for Tier B, core rebalance bands, risk-mode thresholds outside the sleeve | owner | Listed by the Phase 2 phase-plan; set before the Phase 2 gate |
 | Alpaca paper balance of $35k is unverified (the docs give a $100k default and contradict themselves on reset vs new account). Check in the dashboard; if a new account is made, do it only after B10, regenerate keys and update the O1 date. Otherwise scale reports to $35k | owner | Before Phase 5 paper trading; decisions.md §4 |
-| E-1 parameters (dip definition, profit target, B's stop distance, ETF and stock lists, test window, tax assumptions) to freeze before any data is examined; confirm that the arms run as simulations because arm A has no stop and sleeve stops are mandatory | agent proposes, owner approves | Phase 2 phase-plan; before any Phase 4 backtest |
-| Options track: confirm covered calls are on sleeve shares only (assignment on core shares would break D-14); confirm the per-trade maximum loss uses the 1% sleeve cap ($50); use a separate paper account so manual options trades do not break automated reconciliation | owner | Before the first options learning trade; decisions.md §5 |
+| E-1 parameters (dip definition, profit target, B's stop distance, ETF and stock lists, test window, tax assumptions) to freeze before any data is examined | agent proposes, owner approves | Phase 2 phase-plan; before any Phase 4 backtest |
+| Create the separate Alpaca options paper account (keys, if any, kept out of the automation's `.env` entries) | owner | Before the first options learning trade |
 | Loss-limit definitions (day/week baselines, peak high-water mark and any annual reset, realized vs unrealized) | agent | Phase 2 SPEC |
 | Current holdings, cost basis, fee schedule from advisor statements (O4) | owner | Carried from Phase 0; due before the Phase 6 real-money gate |
 | Book the CPA (O5) | owner | Carried from Phase 0; due before the Phase 6 real-money gate |
