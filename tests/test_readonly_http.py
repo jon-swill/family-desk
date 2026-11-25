@@ -50,6 +50,13 @@ REFUSED_URLS = [
     "https://efts.sec.gov/LATEST/search-index",
     "https://sec.gov/files/company_tickers.json",
     "https://example.com/v2/account",
+    "https://paper-api.alpaca.markets\\@evil.test/v2/account",
+    "https://evil.test\\@paper-api.alpaca.markets/v2/account",
+    "https://paper-api.alpaca.markets/v2/account#x",
+    "https://paper-api.alpaca.markets/v2/account%20",
+    "https://paper-api.alpaca.markets/v2/account\n",
+    " https://paper-api.alpaca.markets/v2/account",
+    "HTTPS://paper-api.alpaca.markets/v2/account",
 ]
 
 NON_GET = ["POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS", "get", "Get", " GET", ""]

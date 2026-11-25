@@ -8,6 +8,7 @@ Redirects are never followed (a redirect could leave the allowlist).
 
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import Protocol
@@ -32,6 +33,9 @@ ALLOWLIST: frozenset[tuple[str, str]] = frozenset(
 
 ALLOWED_METHOD = "GET"
 MAX_BODY_BYTES = 20 * 1024 * 1024
+# Strict shape, checked before parsing, so urllib and httpx cannot read a URL differently
+# (no backslash, "@", "%", whitespace, query or fragment characters).
+SAFE_URL = re.compile(r"^https://[A-Za-z0-9.-]+(?::443)?/[A-Za-z0-9/._-]*$")
 
 
 class RefusedRequestError(PermissionError):
@@ -62,6 +66,8 @@ def check_request(
     """Pure policy check. Returns (host, path) or raises RefusedRequestError."""
     if method != ALLOWED_METHOD:
         raise RefusedRequestError(f"method {method!r} refused: only GET is allowed")
+    if not SAFE_URL.fullmatch(url):
+        raise RefusedRequestError("URL has characters outside the strict allowlist shape")
     parts = urlsplit(url)
     if parts.scheme != "https":
         raise RefusedRequestError("only https is allowed")
