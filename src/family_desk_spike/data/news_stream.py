@@ -27,6 +27,10 @@ from family_desk_spike.parse.alpaca_rest import ParseError
 from family_desk_spike.parse.stream import Message
 
 STREAM = "news"
+# Owner decision 2026-11-25: subscribe to all news ("*", Alpaca's documented example) so
+# every item proves the stream delivers (P-02 known positive, like EDGAR's pre-filter
+# count); our code filters to the watchlist. Off-watchlist items are counted, never logged.
+SUBSCRIBE_ALL = ["*"]
 
 
 def news_payload(n: NewsItem) -> dict[str, object]:
@@ -109,7 +113,7 @@ class NewsMonitor:
     heartbeat_after: float
     started_mono: float
     dedupe: NewsDeduper = field(default_factory=NewsDeduper)
-    stream_items: int = 0
+    stream_items: int = 0  # unique items of any symbol: the liveness count
     watchlist_items: int = 0
     heartbeats: int = 0
     stream_ids: set[int] = field(default_factory=set)  # every id the stream delivered
@@ -132,8 +136,9 @@ class NewsMonitor:
         if not self.dedupe.first_time(msg.id):
             return
         self.stream_items += 1
-        if set(self.symbols).intersection(msg.symbols):
-            self.watchlist_items += 1
+        if not set(self.symbols).intersection(msg.symbols):
+            return  # counted for liveness only; no metadata kept (C-7: store only what we use)
+        self.watchlist_items += 1
         self.log.append("news.stream", news_payload(msg), source_ts=utc_iso(msg.created_at))
 
     def on_tick(self) -> None:
@@ -181,6 +186,7 @@ class NewsMonitor:
         return {
             "stream_items": self.stream_items,
             "stream_watchlist_items": self.watchlist_items,
+            "delivery_proven": self.stream_items > 0,
             "duplicates_dropped": self.dedupe.duplicates,
             "heartbeats": self.heartbeats,
             "cross_check": {
@@ -245,7 +251,7 @@ def build_news_session(
         url=url,
         connector=connector,
         settings=settings,
-        subscribe={"news": list(monitor.symbols)},
+        subscribe={"news": list(SUBSCRIBE_ALL)},
         log=log,
         clock=clock,
         on_message=monitor.on_message,

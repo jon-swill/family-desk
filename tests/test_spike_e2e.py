@@ -56,7 +56,7 @@ IEX_SCRIPT: list[Step] = [
 NEWS_SCRIPT: list[Step] = [
     CONNECTED,
     AUTHENTICATED,
-    frame({"T": "subscription", "news": WATCH}),
+    frame({"T": "subscription", "news": ["*"]}),
     frame(
         {
             "T": "n",
