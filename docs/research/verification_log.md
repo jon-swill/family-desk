@@ -111,6 +111,7 @@ One row per original verify marker (11 in total: 7 in FAILURE_LIBRARY, 4 in NEWS
 | A3-10.2 | 10 · Cash-secured puts / wheel | Same (volatility risk premium) | Same | https://cdn.cboe.com/resources/indices/governance/Cboe_SP_500_PutWrite_Indices_Methodology.pdf | 2026-11-25 | confirmed (PUT objective read); wheel-specific evidence unverifiable | Added Cboe PUT methodology; wheel marked unverified |
 | A3-10.3 | 10 · Protective puts / collars | Cost drag | Cost drag | https://www.aqr.com/Insights/Research/White-Papers/Pathetic-Protection-The-Elusive-Benefits-of-Protective-Puts | 2026-11-25 | confirmed (puts); collars unverifiable | Added Israelov 2019; collars marked unverified |
 | A3-10.4 | 10 · Iron condors, spreads, 0DTE | Many retail losses | Many retail losses | https://doi.org/10.1111/jofi.13285 | 2026-11-25 | confirmed (retail options generally); 0DTE-specific unverifiable (SSRN 4404704 blocked) | Added Bryzgalova-Pavlova-Sikorskaya 2023 |
+| A3-12.1 | 12 · Test plan item 4 | Deflated Sharpe ratio method | Trial count and deflated Sharpe. | https://doi.org/10.3905/jpm.2014.40.5.094 | 2026-11-25 | confirmed (DOI and title checked on Crossref; abstract via SSRN 2460551 index) | Added method citation. Section 11 has no evidence column and no evidence claims; Suggested first candidates has none. No pre-existing links in sections 7–12, so no dead links to fix |
 
 ## 6. Broker and post-mortem sources (A4)
 

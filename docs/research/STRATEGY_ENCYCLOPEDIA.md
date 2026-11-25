@@ -128,7 +128,7 @@ Fit key: **Core** = can sit in the long-term bucket · **Sleeve** = active sleev
 1. Pre-registration (R-17): hypothesis, economic rationale, universe, parameters, benchmark, kill criteria.
 2. Point-in-time data, survivorship-free universe, realistic costs and slippage.
 3. Walk-forward test, then one untouched holdout check (R-18).
-4. Trial count and deflated Sharpe.
+4. Trial count and deflated Sharpe ([Bailey & López de Prado 2014](https://doi.org/10.3905/jpm.2014.40.5.094), J. Portfolio Management; corrects the Sharpe ratio for selection bias under multiple testing and non-normal returns).
 5. Regime breakdown (bull, bear, sideways, high-vol) and worst drawdown.
 6. Capacity and turnover; after-tax result vs the core benchmark.
 7. Forward-logged paper results before any live money.
