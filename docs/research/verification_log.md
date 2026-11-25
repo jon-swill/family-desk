@@ -16,6 +16,7 @@ One row per original verify marker (11 in total: 7 in FAILURE_LIBRARY, 4 in NEWS
 
 | # | Row | Claim | Original text | Primary source URL | Accessed | Verdict | Change made |
 |---|---|---|---|---|---|---|---|
+| 3.1 | SEC EDGAR · What it gives (link) | Free Atom feed of latest filings by form type | "free Atom feed of latest filings by form type ([dev guide](https://dev.to/nexgendata/sec-8-k-filings-api-build-a-material-events-tracker-2026-guide-2ll3))" | https://www.sec.gov/about/developer-resources (Latest Filings RSS, example `browse-edgar?action=getcurrent&type=10-k&...&count=40&output=atom`); https://www.sec.gov/about/secrss.shtml ("you can subscribe to all filings, or filter by company, CIK, or Form Type") | 2026-11-25 | confirmed (non-primary-only link replaced) | dev.to citation replaced with the two SEC pages; claim unchanged |
 
 ## 4. Alpaca free-tier terms, endpoints and EDGAR terms (A2, G-5)
 
