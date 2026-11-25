@@ -55,6 +55,11 @@ class WatchlistConfig(_Frozen):
 class NewsConfig(_Frozen):
     rest_lookback_hours: int = Field(gt=0, le=168)
     rest_limit: int = Field(gt=0, le=50)
+    # Stream-vs-REST cross-check (P-02): every N seconds, and once at shutdown. Items
+    # newer than the grace are not judged: REST without real-time access ends 15 min
+    # before now (Alpaca news reference), and the stream's own delay is undocumented.
+    cross_check_seconds: int = Field(default=300, ge=60, le=3600)
+    cross_check_grace_seconds: int = Field(default=960, ge=0, le=3600)
 
 
 class StreamsConfig(_Frozen):

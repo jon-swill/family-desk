@@ -341,3 +341,14 @@ def test_dead_source_task_is_logged_when_it_dies(
     assert errors[0] < last_quote  # logged while the streams were still running
     assert recs[-1]["payload"]["task_failures"] == {"edgar": "RuntimeError('boom')"}  # type: ignore[index]
     assert "ERROR: source task 'edgar' died" in capsys.readouterr().out
+
+
+def test_run_ends_with_a_final_news_cross_check(tmp_path: Path) -> None:
+    """P-02: the stream's silence is judged against REST at shutdown, not assumed."""
+    state, recs, _ = Harness(tmp_path).run()
+    assert state.exit_code == EXIT_OK, state.lines
+    checks = [r["payload"] for r in recs if r["source"] == "news.cross_check"]
+    assert checks and checks[-1]["final"] is True  # type: ignore[index]
+    assert checks[-1]["verdict"] == "no_positive_case"  # type: ignore[index]
+    summary = recs[-1]["payload"]["news_stream"]["cross_check"]  # type: ignore[index]
+    assert summary["stalled"] is False

@@ -50,3 +50,30 @@ async def fetch_recent_news(
     )
     items, _ = parse_news_page(ensure_ok(resp, NEWS_PATH))
     return items
+
+
+async def fetch_news_window(
+    http: ReadOnlyHttp,
+    *,
+    data_base_url: str,
+    settings: Settings,
+    symbols: Sequence[str],
+    start: datetime,
+    end: datetime,
+    limit: int = 50,
+) -> tuple[list[NewsItem], bool]:
+    """One page of watchlist news in [start, end]. Returns (items, truncated)."""
+    resp = await http.get(
+        data_base_url.rstrip("/") + NEWS_PATH,
+        params={
+            "symbols": ",".join(symbols),
+            "start": utc_iso(start),
+            "end": utc_iso(end),
+            "limit": str(limit),
+            "sort": "desc",
+            "include_content": "false",
+        },
+        headers=alpaca_headers(settings),
+    )
+    items, token = parse_news_page(ensure_ok(resp, NEWS_PATH))
+    return items, token is not None

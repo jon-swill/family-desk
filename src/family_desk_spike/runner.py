@@ -32,7 +32,12 @@ from family_desk_spike.core.run_window import check_run_window
 from family_desk_spike.data.edgar import EdgarPoller, RateLimitedSec, load_cik_filter
 from family_desk_spike.data.iex_stream import QuoteMonitor, build_quote_session
 from family_desk_spike.data.news_rest import fetch_recent_news, watchlist_matches
-from family_desk_spike.data.news_stream import NewsMonitor, build_news_session, news_payload
+from family_desk_spike.data.news_stream import (
+    NewsMonitor,
+    build_news_session,
+    news_payload,
+    run_news_cross_check,
+)
 from family_desk_spike.data.stream_client import Connector, StreamCounters
 from family_desk_spike.net.readonly_http import GetTransport, ReadOnlyHttp
 from family_desk_spike.parse.alpaca_rest import ParseError, SchemaDriftError
@@ -293,6 +298,29 @@ async def run(
             sleep=deps.sleep,
         )  # fmt: skip
         state.news.seed([n.id for n in rest_news])
+        news_monitor = state.news
+        news_window_start = deps.clock()
+        loop_sleep = deps.sleep or _stop_aware_sleep(stop)
+
+        async def news_check(final: bool) -> None:
+            result = await run_news_cross_check(
+                news_monitor, http, data_base_url=cfg.alpaca.data_base_url, settings=settings,
+                window_start=news_window_start, grace_seconds=cfg.news.cross_check_grace_seconds,
+                final=final,
+            )  # fmt: skip
+            if result is not None and result.verdict in ("stall", "partial"):
+                state.say(
+                    f"STALL: news stream missed {len(result.missed_ids)} watchlist item(s) "
+                    f"that REST has (verdict={result.verdict})"
+                )
+
+        async def news_cross_check_loop() -> None:
+            while not stop.is_set():
+                await loop_sleep(cfg.news.cross_check_seconds)
+                if stop.is_set():
+                    break
+                await news_check(final=False)
+
         state.stream_counters = {"iex": quote_session.counters, "news": news_session.counters}
         poller_kwargs: dict[str, Any] = {}
         if deps.rand is not None:
@@ -307,6 +335,7 @@ async def run(
             asyncio.create_task(quote_session.run(), name="iex"),
             asyncio.create_task(news_session.run(), name="news"),
             asyncio.create_task(state.edgar.run(), name="edgar"),
+            asyncio.create_task(news_cross_check_loop(), name="news_cross_check"),
         ]
         for t in tasks:
             t.add_done_callback(_report_task_death(state, log))
@@ -319,6 +348,8 @@ async def run(
             _done, pending = await asyncio.wait(tasks, timeout=15)
             for t in pending:
                 t.cancel()
+            with contextlib.suppress(TimeoutError):  # final check over the whole run
+                await asyncio.wait_for(news_check(final=True), timeout=20)
         return state.exit_code
     finally:
         if deps.close_transport is not None:
