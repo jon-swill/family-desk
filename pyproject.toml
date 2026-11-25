@@ -37,6 +37,7 @@ addopts = "-p no:cacheprovider"
 line-length = 100
 target-version = "py312"
 src = ["src", "tests"]
+extend-exclude = [".claude"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "S", "SIM", "RUF"]
