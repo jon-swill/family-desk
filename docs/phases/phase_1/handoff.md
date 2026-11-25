@@ -3,7 +3,7 @@
 Nothing was pushed. Everything below is local commits on `main`. Gates at hand-off: `ruff check`, `ruff format --check`, `mypy --strict src` green; `pytest -q` 229 passed, 1 skipped (the real AAPL fixture test, see step 2).
 
 ## Done (agent)
-B1, B2, B3, B4, B5, B6, B7, B9, B12, A1, A2, A3, A4, A5. B8 is done except its real fixture (step 2). A6 and A7 (engine and broker scoring) were running at the time of writing; see the task table for their final state. Proof for each is in `phase_1_tasks.md`.
+B1, B2, B3, B4, B5, B6, B7, B9, B12, A1, A2, A3, A4, A5, A6, A7. B8 is done except its real fixture (step 2). Proof for each is in `phase_1_tasks.md`.
 
 ## Waits on the owner, in order
 
@@ -40,6 +40,9 @@ B1, B2, B3, B4, B5, B6, B7, B9, B12, A1, A2, A3, A4, A5. B8 is done except its r
 - **A3 evidence contradictions** (Evidence cells corrected; "Why it might work" columns left alone): turn-of-month "fund flows" is rejected by McConnell & Xu 2008; volatility targeting has no systematic out-of-sample edge (Cederburg et al. 2020); SMA crossover is not significant out-of-sample (Sullivan et al. 1999); time-series momentum is weak asset by asset (Huang et al. 2020); opening-range breakout results rely on 3x ETFs, which are on our blocklist.
 - **A1:** the F-14 figure changed from "1.1% earned more than minimum wage" (not found in any readable source) to "0.4% earned more than a bank teller", from the abstract. F-10 got a wording fix. Neither changes a rule.
 - **A2:** (a) free-plan news may be delayed 15 minutes; the spike's real timestamps will show it; (b) news now also comes from `fiscal.ai`, not only Benzinga; (c) AS-16 is false, as the two Atom formats differ (the parser handles both); (d) whether the free plan can use the delayed-SIP stream is unverified.
+
+- **A6 engines:** both packaged engines (NautilusTrader, LEAN) have built-in exit paths that send market orders (`close_all_positions`, `liquidate`, margin-call liquidation) and no documented way to put our kernel in front of them. Under the robustness check that is a knock-out (E-1), so A8 may end with no engine pick, unless you move the choice to the Phase 2 install-check. LEAN local/on-prem live trading appears to need a paid tier. NautilusTrader v2 needs Python 3.13 or later (the repo pins 3.12).
+- **A7 brokers:** Schwab's developer portal and interactivebrokers.com refused automated reads, so 9 Schwab and 2 IBKR cells are `unverified`. You can close them by reading those pages in a browser; the robustness check sets them to the worst score, and Schwab's B-1 and B-2 then knock it out. Read-only keys: Alpaca none, Robinhood none, IBKR only as a local TWS setting, Schwab unknown. Robinhood's customer agreement §29.1 needs written consent for "Licensee Products", and it is unclear whether a deterministic order client counts.
 
 ## Next agent tasks once the above is done
 B8 fixture commit → B11 (evidence, `pytest -rA` capture, secret scan) → A10 (data scores with spike measurements) → A8 (totals, robustness, sensitivity, dissent) → A9 (after O6) → A11 (after O1 and O7) → G1 phase-gate.
