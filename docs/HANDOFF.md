@@ -1,5 +1,7 @@
 # Handoff: Family Trading Desk (as of 2026-11-24)
 
+> **Note (2026-11-24):** `docs/RETRO.md` decisions of 2026-11-24 supersede the Phase 1 owner rows below: the employer personal-trading policy check is removed, and the CPA (booking, inputs, tax-model sign-off) and advisor statements move to before the Phase 6 real-money gate.
+
 Start here in any new chat or Claude Code session. Planning began in claude.ai on 24 Nov 2026 and moves to a dedicated claude.ai project and the owner's personal Windows PC.
 
 ## Who and what

@@ -3,6 +3,7 @@
 *.key
 *.pem
 secrets/
+private/
 logs/
 data/
 __pycache__/

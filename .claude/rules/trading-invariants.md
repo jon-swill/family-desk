@@ -19,4 +19,4 @@ These come from `docs/MASTER_BRIEF.md` (rules 1–12) and `docs/research/FAILURE
 15. Self-halt on abnormal order rates or fills exceeding targets; page the owner (R-15, R-16).
 16. Options and shorting are rejected in every automated path (owner decision).
 17. Paper endpoint asserted at startup until the Phase 6 gate; refuse to run if the endpoint or config hash is unexpected (R-13).
-18. Restricted list (employer and consulting conflicts) blocked in the kernel (C-3).
+18. Restricted list blocked in the kernel (C-3). The list starts empty and is owner-maintained; no employer-policy check.

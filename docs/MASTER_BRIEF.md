@@ -20,7 +20,7 @@ NON-NEGOTIABLE PRINCIPLES
 9. Append-only ledger, reconciled with the broker before every order and daily. Spend is a P&L line with hard caps.
 10. Engineer it like SaMD: PRD, spec, hazard analysis, tests, verification, phase gates.
 11. Assume keys, the command channel and the dev pipeline can be compromised: allowlist, liquidity floor, collars, per-order caps, fixed-grammar commands, signed config, human review on kernel changes.
-12. Taxes: reserve = tax with minus tax without (federal + NJ), household-wide wash-sale tracking, estimated-payment schedule. Humans (me, my CPA) sign off at every gate and on any live allocation.
+12. Taxes: reserve = tax with minus tax without (federal + NJ), household-wide wash-sale tracking, estimated-payment schedule. I sign off at every gate and on any live allocation; my CPA signs off on the tax model before any real money (Phase 6 gate).
 13+. Failure-derived rules R-13 to R-40 in docs/research/FAILURE_LIBRARY.md (e.g. no market orders, no stop-market at open, self-halt on aberrant order rates, pre-registration, turnover caps, instrument blocklist). The list grows with every failure we find.
 
 OWNER DECISIONS

@@ -89,7 +89,7 @@ Learn from everyone who failed before us. Each entry: what happened, the root ca
 - **Control:** R-12 in the master brief (household-wide tracking, reserve = tax with minus tax without, estimated payments).
 
 ### F-19 Trading on inside information or conflicts
-- **Control:** **R-40** Restricted list from the owner's employer and consulting clients; the kernel blocks those symbols (COMPLIANCE.md C-3).
+- **Control:** **R-40** Restricted list is owner-maintained and starts empty; the kernel blocks every symbol on it (COMPLIANCE.md C-3).
 
 ## Open questions for Phase 1
 - Find post-mortems of retail algo traders (blogs, r/algotrading) and add the top recurring causes.

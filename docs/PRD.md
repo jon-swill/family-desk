@@ -1,6 +1,6 @@
 # PRD: Family Trading Desk
 
-Owner: Jonathan Swill · Status: Draft v0.1 (2026-11-24) · Source: "Family Trading Desk — Project Plan & Prompt Pack" (claude.ai doc) and owner decisions in `docs/RETRO.md`.
+Owner: Jonathan Swill · Status: Draft v0.2 (2026-11-24; v0.2 moves CPA review of the tax model to the Phase 6 gate) · Source: "Family Trading Desk — Project Plan & Prompt Pack" (claude.ai doc) and owner decisions in `docs/RETRO.md`.
 
 Requirement IDs are stable. Phase plans must trace every deliverable to an ID here.
 
@@ -95,11 +95,11 @@ Household only. The system never manages money for anyone outside the household 
 |---|---|---|
 | 0 | Charter and decisions | Decisions table complete; current holdings and fees captured |
 | 1 | Landscape + strategy + failure research; engine/broker/data choice | Decision matrix reviewed (plan-evaluation + independent review) and owner sign-off |
-| 2 | SPEC.md, FMEA, interface contracts | samd-design-review style graded review; owner + CPA (tax) sign-off |
+| 2 | SPEC.md, FMEA, interface contracts | samd-design-review style graded review; owner sign-off. The tax model is built from published federal and NJ rules and labelled "not CPA-reviewed" until the CPA signs off before the Phase 6 gate |
 | 3 | Safety spine: ledger, kernel, execution adapter, watchdog, tax reserve, dashboard, news alerts | Fault-injection suite green |
 | 4 | Strategy research: baselines, point-in-time backtests, forward logging | Pre-registered hypotheses survive out-of-sample after costs |
 | 5 | Paper trading 60–90 days (30 minimum) | Zero limit breaches; clean reconciliation; honest scorecard |
-| 6 | Live pilot (realistically month 5–6) | Live tracks paper; owner sign-off on allocation |
+| 6 | Live pilot (realistically month 5–6) | Live tracks paper; CPA sign-off on the tax model (CPA inputs incorporated, "not CPA-reviewed" label removed) before any real money; owner sign-off on allocation |
 | 7 | Scale and operate | Monthly reviews; quarterly re-certification |
 
 ## 7. Out of scope
