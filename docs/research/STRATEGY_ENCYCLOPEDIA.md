@@ -105,10 +105,10 @@ Fit key: **Core** = can sit in the long-term bucket · **Sleeve** = active sleev
 
 | Strategy | Typical rules | Why it might work | Evidence and decay | Main failure mode | Fit |
 |---|---|---|---|---|---|
-| Covered calls | Sell calls against held stock | Volatility risk premium | Documented; caps upside | Big rallies called away; full downside | No (manual future phase) |
-| Cash-secured puts / wheel | Sell puts, take assignment, then sell calls | Same | Same | Assignment in crashes | No (manual future phase) |
-| Protective puts / collars | Buy puts; finance with calls | Insurance | Cost drag | Expensive when needed most | No (manual future phase) |
-| Iron condors, spreads, 0DTE | Sell premium in ranges | Premium harvesting | Many retail losses | Tail events | No |
+| Covered calls | Sell calls against held stock | Volatility risk premium | Documented; caps upside. Benchmark: [Cboe BXM methodology](https://cdn.cboe.com/resources/indices/governance/BXM_Methodology.pdf) (S&P 500 plus a succession of one-month at-the-money calls). Covered calls collect the equity and volatility risk premiums but also carry an uncompensated equity-reversal exposure ([Israelov & Nielsen 2015](https://doi.org/10.2469/faj.v71.n6.1), FAJ; authors at AQR) | Big rallies called away; full downside | No (manual future phase) |
+| Cash-secured puts / wheel | Sell puts, take assignment, then sell calls | Same | Same premium source. Benchmark: [Cboe PUT methodology](https://cdn.cboe.com/resources/indices/governance/Cboe_SP_500_PutWrite_Indices_Methodology.pdf) (at-the-money SPX puts sold monthly over a T-bill account). Wheel-specific evidence unverified (no primary study found) | Assignment in crashes | No (manual future phase) |
+| Protective puts / collars | Buy puts; finance with calls | Insurance | Cost drag: in typical use, puts reduced drawdowns little versus simply holding less equity, and can increase drawdowns when priced with a volatility risk premium ([Israelov 2019](https://www.aqr.com/Insights/Research/White-Papers/Pathetic-Protection-The-Elusive-Benefits-of-Protective-Puts), J. Alternative Investments; AQR-hosted copy). Collar-specific evidence unverified | Expensive when needed most | No (manual future phase) |
+| Iron condors, spreads, 0DTE | Sell premium in ranges | Premium harvesting | Many retail losses: retail options traders favor cheap weekly options with wide spreads and "lose money on average" ([Bryzgalova, Pavlova & Sikorskaya 2023](https://doi.org/10.1111/jofi.13285), J. Finance). 0DTE- and condor-specific studies unverified (SSRN not reachable) | Tail events | No |
 
 ## 11. Exits and risk management (apply to every strategy)
 
