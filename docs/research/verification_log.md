@@ -28,6 +28,12 @@ One row per original verify marker (11 in total: 7 in FAILURE_LIBRARY, 4 in NEWS
 
 | # | Term | Verified value | Primary source URL | Accessed | Verdict | Change made |
 |---|---|---|---|---|---|---|
+| 4.1 | Alpaca free plan name, default, paid plan | Basic, free, default for paper and live accounts; paid Algo Trader Plus $99/month | https://docs.alpaca.markets/us/docs/about-market-data-api | 2026-11-25 | confirmed | Added to D3 "Alpaca market data" |
+| 4.2 | Alpaca REST rate limit (Basic) | 200 historical API calls/min (Algo Trader Plus 10,000/min) | https://docs.alpaca.markets/us/docs/about-market-data-api | 2026-11-25 | confirmed | Added to D3; sources table row updated |
+| 4.3 | Alpaca WebSocket limits (Basic) | 30 equity symbol subscriptions; connections per endpoint limited by subscription, "most users can have only 1 active stream connection" | https://docs.alpaca.markets/us/docs/about-market-data-api ; https://docs.alpaca.markets/us/docs/streaming-market-data | 2026-11-25 | confirmed | Added to D3 |
+| 4.4 | IEX scope | Basic real-time equities from IEX only; IEX about 2.5% of market volume; `iex` is the only feed usable without a subscription; paper accounts entitled to IEX only | https://docs.alpaca.markets/docs/historical-stock-data-1 ; https://docs.alpaca.markets/us/docs/paper-trading | 2026-11-25 | confirmed | Added to D3 |
+| 4.5 | Delayed SIP on free plan | REST: SIP queries allowed without subscription when `end` is at least 15 min old; latest/snapshot need subscription; bars `feed` default is `sip`. Stream `v2/delayed_sip` exists; Basic eligibility not stated | https://docs.alpaca.markets/us/docs/market-data-faq ; https://docs.alpaca.markets/us/reference/stockbars ; https://docs.alpaca.markets/docs/real-time-stock-pricing-data | 2026-11-25 | confirmed (REST); unverifiable (delayed_sip stream on Basic: not stated on any Alpaca page) | Added to D3 |
+| 4.6 | Stream error codes and format | `[{"T":"error","code":406,"msg":"connection limit exceeded"}]`; 402 auth failed; 404 auth timeout (10 s); 405 symbol limit exceeded; 409 insufficient subscription; full table in D3. REST 403 = subscription does not cover data | https://docs.alpaca.markets/us/docs/streaming-market-data ; https://docs.alpaca.markets/us/reference/news-3 ; https://docs.alpaca.markets/us/docs/market-data-faq | 2026-11-25 | confirmed | Added to D3 |
 
 ## 5. STRATEGY_ENCYCLOPEDIA evidence cells and links (A3)
 
