@@ -4,7 +4,7 @@
 
 **Purpose.** Compare the execution/backtest engine candidates (PRD §5), the broker candidates (FR-3) and the data-source options (Phase 1 plan D6) on criteria fixed in advance, so the Phase 1 recommendation rests on cited evidence and not on the plan's wording or on familiarity. Traces to PRD §5, §6, FR-3 and Phase 1 gate G-1.
 
-**Status: criteria and weights frozen 2026-11-25 before any scoring (A5).** No candidate has been scored. Sections 6 to 9 are empty.
+**Status: criteria and weights frozen 2026-11-25 before any scoring (A5); scored 2026-11-25 (A6 §6, A7 §7, A10 §8); totals, robustness, sensitivity and dissent in §9 (A8).** No amendment was made after scoring started. Result: **no engine recommendation** (the robustness check changes the winner; see §9), so G-1 holds unless the owner moves the engine choice to the Phase 2 install-check at G3.
 
 **Freeze rule.** Weights may not change after scoring starts without an owner-approved, dated row in the amendment table below. The same applies to criteria, level anchors, worst plausible scores, knock-out flags and the method in section 5. Scoring starts with the first score cell committed by A6, A7 or A10. When an amendment lands after scoring has started, A8 reports totals under both the original and the amended version, and the dissent says whether the change moved the result.
 
@@ -457,4 +457,265 @@ Scope and access notes:
 
 ## 9. A8 Totals, unverified share, robustness, sensitivity, recommendation and dissent
 
-Not started.
+Written 2026-11-25 by A8. It applies the section 5 method to the score tables of sections 6, 7, 8.1 and 8.2. No score, weight, criterion, worst plausible score, KO flag or earlier section was changed. The section 1 status line ("No candidate has been scored") predates A6, A7 and A10 and was left as it is, because A8 edits this section only.
+
+### 9.1 How the numbers were produced
+
+- **All totals were computed by script from the committed tables at commit `66f749f`**, read with `git show 66f749f:docs/research/decision_matrix.md`, not from the working copy and not by hand. The script (`a8_matrix.py`, standard library only) is kept outside the repo, in the session scratchpad; it was run with the project `.venv` Python as `python -I a8_matrix.py`. Its output is reproduced verbatim in 9.2.
+- **Inputs.** Weights, worst plausible scores and KO flags come from the section 3 tables (weight column; the leading integer of the worst-plausible column; `(KO)` after the ID). Scores and statuses come from the Score and Status columns of sections 6, 7, 8.1 and 8.2.
+- **Parse checks (all passed).** Every row has six columns; every score is an integer 0 to 5; every status is `cited`, `measured` or `unverified`; a cell's status is `unverified` exactly when its source column starts with `` `unverified ``; each table's weights sum to 100; every candidate has every criterion exactly once (engines 33 cells, brokers 52, price feeds 30, company events 27). Sections 7 and 8 write KO IDs as `B-1 (KO)`, `DP-1 (KO)` and so on, while section 6 writes `E-1`. The script strips the suffix and checks that it matches the section 3 KO flag; it matched everywhere.
+- **Amendments.** The amendment table in section 1 has no rows, so totals are reported under one version of the criteria and weights only.
+- **Method as applied.** 5.1: total = Σ weight × score, out of 500, and as a percentage of 500; a 0 on a KO criterion gives `excluded (KO <ID>)`; a lead under 5 percentage points over the next eligible candidate is flagged `NEAR-TIE`. 5.2: unverified share by weight (out of 100) and by count. 5.3: every `unverified` cell set to its criterion's worst plausible score, KO rule re-applied. No `unverified` cell had a best estimate below its worst plausible score, so the rule never raised a score. 5.4: each weight × 1.5 and × 0.5, the other weights scaled by (100 − w_i′) / (100 − w_i), base scores only; a "flip" is any move after which rank 1 differs from base rank 1 (a tie counts as a change).
+- **Extra output, not part of section 5.** To support the dissent the script also prints: the upper bound (every `unverified` cell at 5); the narrowest lead over all sensitivity moves where nothing flips; a decomposition of the base lead of rank 1 over rank 2 by criterion; a single-cell stress on the base rank-1 candidate (one non-KO cell at a time set to its worst plausible score, every other cell at base); and, for each candidate that is excluded only in the robustness check, its robustness total if the excluding KO cell were verified at a score s. These lines inform the dissent. They decide nothing.
+
+### 9.2 Script output (verbatim)
+
+Source: `git show 66f749f:docs/research/decision_matrix.md`
+Amendment rows with content: 0
+
+#### Engines (section 3.1 / section 6)
+
+| Candidate | Base raw /500 | Base % | Base KO | Unverified by weight /100 | Unverified by count | >50 by weight | Robust raw /500 | Robust % | Robust KO |
+|---|---|---|---|---|---|---|---|---|---|
+| NautilusTrader | 332 | 66.4 | none | 15 | 1 of 11 | no | 287 | 57.4 | excluded (KO E-1) |
+| LEAN | 310 | 62.0 | none | 23 | 2 of 11 | no | 256 | 51.2 | excluded (KO E-1) |
+| Custom on vectorbt | 283 | 56.6 | none | 0 | 0 of 11 | no | 283 | 56.6 | none |
+
+Base order: NautilusTrader (332) > LEAN (310) > Custom on vectorbt (283). Rank 1: NautilusTrader; lead over rank 2 = 4.4 pp (NEAR-TIE).
+
+Robustness order: Custom on vectorbt (283) > NautilusTrader (287, excluded KO E-1) > LEAN (256, excluded KO E-1). Rank 1: Custom on vectorbt.
+
+Rank 1 changes under robustness: YES.
+
+Extra, not part of section 5 (upper bound: every unverified cell at 5): LEAN (371) > NautilusTrader (362) > Custom on vectorbt (283).
+
+Sensitivity (base scores, each weight x1.5 and x0.5, others rescaled): no single-weight move changes rank 1 (22 moves tested).
+
+Narrowest base lead across the sensitivity moves: 2.5 pp (E-5 x1.5).
+
+Base lead decomposition, NautilusTrader minus LEAN (weight x score difference; U = unverified cell):
+
+| Criterion | Weight | NautilusTrader | LEAN | Contribution |
+|---|---|---|---|---|
+| E-1 | 15 | 3 U | 2 U | +15 |
+| E-3 | 12 | 3 | 4 | -12 |
+| E-4 | 8 | 3 | 2 | +8 |
+| E-5 | 8 | 1 | 3 U | -16 |
+| E-6 | 9 | 5 | 4 | +9 |
+| E-7 | 8 | 2 | 3 | -8 |
+| E-9 | 8 | 3 | 2 | +8 |
+| E-11 | 6 | 5 | 2 | +18 |
+| Total | | | | 22 |
+
+Extra, single-cell stress on NautilusTrader (one non-KO cell at a time set to its worst plausible score): E-2 (cited, 4->1; rank 1 becomes LEAN: LEAN (310) > NautilusTrader (296) > Custom on vectorbt (283)); E-3 (cited, 3->1; rank 1 becomes LEAN: LEAN (310) > NautilusTrader (308) > Custom on vectorbt (283)); E-4 (cited, 3->0; rank 1 becomes LEAN: LEAN (310) > NautilusTrader (308) > Custom on vectorbt (283)); E-6 (cited, 5->1; rank 1 becomes LEAN: LEAN (310) > NautilusTrader (296) > Custom on vectorbt (283)); E-11 (cited, 5->0; rank 1 becomes LEAN: LEAN (310) > NautilusTrader (302) > Custom on vectorbt (283)). Any KO cell (E-1) at 0 would exclude it by rule.
+
+If NautilusTrader's E-1 cell(s) were verified at score s (other unverified cells at worst): s=1: 302, s=2: 317, s=3: 332, s=4: 347, s=5: 362.
+
+If LEAN's E-1 cell(s) were verified at score s (other unverified cells at worst): s=1: 271, s=2: 286, s=3: 301, s=4: 316, s=5: 331.
+
+Parsed: 11 criteria x 3 candidates = 33 cells; every candidate has every criterion once.
+
+#### Brokers (section 3.2 / section 7)
+
+| Candidate | Base raw /500 | Base % | Base KO | Unverified by weight /100 | Unverified by count | >50 by weight | Robust raw /500 | Robust % | Robust KO |
+|---|---|---|---|---|---|---|---|---|---|
+| Alpaca | 372 | 74.4 | none | 0 | 0 of 13 | no | 372 | 74.4 | none |
+| Schwab Trader API | 274 | 54.8 | none | 71 | 9 of 13 | yes | 121 | 24.2 | excluded (KO B-1, B-2) |
+| Robinhood Agentic Trading | 263 | 52.6 | none | 19 | 3 of 13 | no | 241 | 48.2 | none |
+| IBKR | 348 | 69.6 | none | 14 | 2 of 13 | no | 302 | 60.4 | excluded (KO B-2) |
+
+Base order: Alpaca (372) > IBKR (348) > Schwab Trader API (274) > Robinhood Agentic Trading (263). Rank 1: Alpaca; lead over rank 2 = 4.8 pp (NEAR-TIE).
+
+Robustness order: Alpaca (372) > Robinhood Agentic Trading (241) > IBKR (302, excluded KO B-2) > Schwab Trader API (121, excluded KO B-1, B-2). Rank 1: Alpaca; lead over rank 2 = 26.2 pp.
+
+Rank 1 changes under robustness: no.
+
+Extra, not part of section 5 (upper bound: every unverified cell at 5): Schwab Trader API (456) > Alpaca (372) > IBKR (367) > Robinhood Agentic Trading (323).
+
+Sensitivity (base scores, each weight x1.5 and x0.5, others rescaled): no single-weight move changes rank 1 (26 moves tested).
+
+Narrowest base lead across the sensitivity moves: 2.3 pp (B-4 x1.5).
+
+Base lead decomposition, Alpaca minus IBKR (weight x score difference; U = unverified cell):
+
+| Criterion | Weight | Alpaca | IBKR | Contribution |
+|---|---|---|---|---|
+| B-2 | 9 | 5 | 4 U | +9 |
+| B-4 | 10 | 2 | 4 | -20 |
+| B-5 | 8 | 4 | 2 | +16 |
+| B-6 | 9 | 4 | 3 | +9 |
+| B-8 | 7 | 5 | 3 | +14 |
+| B-9 | 7 | 2 | 5 | -21 |
+| B-10 | 5 | 3 | 4 | -5 |
+| B-12 | 3 | 4 | 0 | +12 |
+| B-13 | 5 | 5 | 3 U | +10 |
+| Total | | | | 24 |
+
+Extra, single-cell stress on Alpaca (one non-KO cell at a time set to its worst plausible score): B-5 (cited, 4->1; rank 1 becomes Alpaca = IBKR: Alpaca (348) > IBKR (348) > Schwab Trader API (274) > Robinhood Agentic Trading (263)); B-6 (cited, 4->0; rank 1 becomes IBKR: IBKR (348) > Alpaca (336) > Schwab Trader API (274) > Robinhood Agentic Trading (263)); B-8 (cited, 5->1; rank 1 becomes IBKR: IBKR (348) > Alpaca (344) > Schwab Trader API (274) > Robinhood Agentic Trading (263)); B-11 (cited, 4->0; rank 1 becomes Alpaca = IBKR: Alpaca (348) > IBKR (348) > Schwab Trader API (274) > Robinhood Agentic Trading (263)). Any KO cell (B-1, B-2, B-3) at 0 would exclude it by rule.
+
+If Schwab Trader API's B-1, B-2 cell(s) were verified at score s (other unverified cells at worst): s=1: 144, s=2: 167, s=3: 190, s=4: 213, s=5: 236.
+
+If IBKR's B-2 cell(s) were verified at score s (other unverified cells at worst): s=1: 311, s=2: 320, s=3: 329, s=4: 338, s=5: 347.
+
+Parsed: 13 criteria x 4 candidates = 52 cells; every candidate has every criterion once.
+
+#### Price feeds (section 3.3a / section 8.1)
+
+| Candidate | Base raw /500 | Base % | Base KO | Unverified by weight /100 | Unverified by count | >50 by weight | Robust raw /500 | Robust % | Robust KO |
+|---|---|---|---|---|---|---|---|---|---|
+| Alpaca free IEX | 316 | 63.2 | none | 0 | 0 of 10 | no | 316 | 63.2 | none |
+| Alpaca delayed SIP (free plan) | 250 | 50.0 | none | 38 | 4 of 10 | no | 194 | 38.8 | excluded (KO DP-1) |
+| Alpaca paid SIP (ranked only) | 298 | 59.6 | none | 26 | 3 of 10 | no | 228 | 45.6 | none |
+
+Base order: Alpaca free IEX (316) > Alpaca paid SIP (ranked only) (298) > Alpaca delayed SIP (free plan) (250). Rank 1: Alpaca free IEX; lead over rank 2 = 3.6 pp (NEAR-TIE).
+
+Robustness order: Alpaca free IEX (316) > Alpaca paid SIP (ranked only) (228) > Alpaca delayed SIP (free plan) (194, excluded KO DP-1). Rank 1: Alpaca free IEX; lead over rank 2 = 17.6 pp.
+
+Rank 1 changes under robustness: no.
+
+Extra, not part of section 5 (upper bound: every unverified cell at 5): Alpaca delayed SIP (free plan) (358) > Alpaca paid SIP (ranked only) (332) > Alpaca free IEX (316).
+
+Sensitivity (base scores, each weight x1.5 and x0.5, others rescaled): 2 of 20 moves change rank 1.
+
+| Criterion | Factor | New weight | New rank 1 | New order (totals /500) |
+|---|---|---|---|---|
+| DP-2 | x1.5 | 21 | Alpaca paid SIP (ranked only) | Alpaca paid SIP (ranked only) (314.44) > Alpaca free IEX (298.42) > Alpaca delayed SIP (free plan) (270.35) |
+| DP-8 | x0.5 | 5 | Alpaca paid SIP (ranked only) | Alpaca paid SIP (ranked only) (314.56) > Alpaca free IEX (305.78) > Alpaca delayed SIP (free plan) (236.11) |
+
+Base lead decomposition, Alpaca free IEX minus Alpaca paid SIP (ranked only) (weight x score difference; U = unverified cell):
+
+| Criterion | Weight | Alpaca free IEX | Alpaca paid SIP (ranked only) | Contribution |
+|---|---|---|---|---|
+| DP-1 | 12 | 4 | 2 | +24 |
+| DP-2 | 14 | 1 | 5 | -56 |
+| DP-4 | 10 | 2 | 4 U | -20 |
+| DP-8 | 10 | 5 | 0 | +50 |
+| DP-9 | 6 | 5 | 1 U | +24 |
+| DP-10 | 4 | 3 | 4 | -4 |
+| Total | | | | 18 |
+
+Extra, single-cell stress on Alpaca free IEX (one non-KO cell at a time set to its worst plausible score): DP-3 (measured, 5->1; rank 1 becomes Alpaca paid SIP (ranked only): Alpaca paid SIP (ranked only) (298) > Alpaca free IEX (276) > Alpaca delayed SIP (free plan) (250)); DP-5 (measured, 4->0; rank 1 becomes Alpaca paid SIP (ranked only): Alpaca paid SIP (ranked only) (298) > Alpaca free IEX (260) > Alpaca delayed SIP (free plan) (250)); DP-6 (measured, 3->1; rank 1 becomes Alpaca paid SIP (ranked only): Alpaca paid SIP (ranked only) (298) > Alpaca free IEX (292) > Alpaca delayed SIP (free plan) (250)); DP-8 (cited, 5->1; rank 1 becomes Alpaca paid SIP (ranked only): Alpaca paid SIP (ranked only) (298) > Alpaca free IEX (276) > Alpaca delayed SIP (free plan) (250)); DP-9 (cited, 5->1; rank 1 becomes Alpaca paid SIP (ranked only): Alpaca paid SIP (ranked only) (298) > Alpaca free IEX (292) > Alpaca delayed SIP (free plan) (250)). Any KO cell (DP-1) at 0 would exclude it by rule.
+
+If Alpaca delayed SIP (free plan)'s DP-1 cell(s) were verified at score s (other unverified cells at worst): s=1: 206, s=2: 218, s=3: 230, s=4: 242, s=5: 254.
+
+Parsed: 10 criteria x 3 candidates = 30 cells; every candidate has every criterion once.
+
+#### Company-event sources (section 3.3b / section 8.2)
+
+| Candidate | Base raw /500 | Base % | Base KO | Unverified by weight /100 | Unverified by count | >50 by weight | Robust raw /500 | Robust % | Robust KO |
+|---|---|---|---|---|---|---|---|---|---|
+| Alpaca/Benzinga news | 310 | 62.0 | none | 36 | 3 of 9 | no | 250 | 50.0 | none |
+| EDGAR only | 396 | 79.2 | none | 12 | 1 of 9 | no | 372 | 74.4 | none |
+| Issuer IR RSS | 260 | 52.0 | none | 32 | 3 of 9 | no | 214 | 42.8 | excluded (KO DE-1) |
+
+Base order: EDGAR only (396) > Alpaca/Benzinga news (310) > Issuer IR RSS (260). Rank 1: EDGAR only; lead over rank 2 = 17.2 pp.
+
+Robustness order: EDGAR only (372) > Alpaca/Benzinga news (250) > Issuer IR RSS (214, excluded KO DE-1). Rank 1: EDGAR only; lead over rank 2 = 24.4 pp.
+
+Rank 1 changes under robustness: no.
+
+Extra, not part of section 5 (upper bound: every unverified cell at 5): EDGAR only (420) > Alpaca/Benzinga news (394) > Issuer IR RSS (356).
+
+Sensitivity (base scores, each weight x1.5 and x0.5, others rescaled): no single-weight move changes rank 1 (18 moves tested).
+
+Narrowest base lead across the sensitivity moves: 13.1 pp (DE-2 x0.5).
+
+Base lead decomposition, EDGAR only minus Alpaca/Benzinga news (weight x score difference; U = unverified cell):
+
+| Criterion | Weight | EDGAR only | Alpaca/Benzinga news | Contribution |
+|---|---|---|---|---|
+| DE-1 | 14 | 5 | 4 | +14 |
+| DE-2 | 16 | 5 | 2 | +48 |
+| DE-4 | 12 | 2 | 3 U | -12 |
+| DE-5 | 12 | 3 U | 2 U | +12 |
+| DE-7 | 6 | 5 | 4 | +6 |
+| DE-8 | 8 | 5 | 4 | +8 |
+| DE-9 | 10 | 4 | 3 | +10 |
+| Total | | | | 86 |
+
+Extra, single-cell stress on EDGAR only (one non-KO cell at a time set to its worst plausible score): no single cell changes rank 1. Any KO cell (DE-1, DE-8) at 0 would exclude it by rule.
+
+If Issuer IR RSS's DE-1 cell(s) were verified at score s (other unverified cells at worst): s=1: 228, s=2: 242, s=3: 256, s=4: 270, s=5: 284.
+
+Parsed: 9 criteria x 3 candidates = 27 cells; every candidate has every criterion once.
+
+### 9.3 Results at a glance
+
+All figures are from 9.2.
+
+| Table | Base rank 1 (lead over rank 2) | Robustness rank 1 | Rank 1 robust? | Unverified share > 50 by weight | Sensitivity flips (of moves tested) |
+|---|---|---|---|---|---|
+| Engines | NautilusTrader 332 (66.4%), near-tie: 4.4 pp over LEAN | Custom on vectorbt 283 (56.6%); NautilusTrader and LEAN `excluded (KO E-1)` | **No: the winner changes** | none | 0 of 22 |
+| Brokers | Alpaca 372 (74.4%), near-tie: 4.8 pp over IBKR | Alpaca 372; IBKR `excluded (KO B-2)`, Schwab `excluded (KO B-1, B-2)` | Yes (the order below rank 1 changes) | Schwab Trader API (71) | 0 of 26 |
+| Price feeds | Alpaca free IEX 316 (63.2%), near-tie: 3.6 pp over paid SIP | Alpaca free IEX 316; delayed SIP `excluded (KO DP-1)` | Yes | none | **2 of 20** (DP-2 × 1.5; DP-8 × 0.5) |
+| Company events | EDGAR only 396 (79.2%), 17.2 pp over Alpaca/Benzinga news | EDGAR only 372; issuer IR RSS `excluded (KO DE-1)` | Yes | none | 0 of 18 |
+
+No candidate is KO-excluded on base scores. Three of the four tables are near-ties on base scores.
+
+### 9.4 Recommendation and rankings (section 5.5)
+
+**Engine: no recommendation.** On base scores NautilusTrader leads (332, near-tie with LEAN at 310). In the robustness check both NautilusTrader's and LEAN's E-1 cells, which are `unverified`, fall to their worst plausible score of 0. Both are then `excluded (KO E-1)`, and rank 1 moves to custom on vectorbt (283). The winner changes, so under section 5.3 and G-1: **no recommendation; G-1 fails unless the owner moves the engine choice to the Phase 2 install-check at G3.** Custom on vectorbt is not recommended either: it leads only the robustness order, and section 5.3 allows no recommendation when the winner changes. If the owner records that move at G3, the engine choice stays **provisional, install-check in Phase 2**, and the check starts from the base order and the open cells listed in 9.5. Nothing is installed or imported in Phase 1.
+
+**Brokers: ranking only. It decides nothing.** Rank 1 is the same in the base and robustness checks, so the ranking is published:
+- Base: 1 Alpaca 372 (74.4%), 2 IBKR 348 (69.6%), 3 Schwab Trader API 274 (54.8%), 4 Robinhood Agentic Trading 263 (52.6%). Alpaca's lead over IBKR is a near-tie (4.8 pp).
+- Robustness: 1 Alpaca 372, 2 Robinhood Agentic Trading 241; IBKR 302 `excluded (KO B-2)` and Schwab Trader API 121 `excluded (KO B-1, B-2)`.
+- This ranking does not choose the live broker; that choice stays open (RETRO 2026-11-24). **Alpaca stays the paper broker by owner decision, whatever its rank.**
+
+**Price and reference-price feeds (3.3a): ranking only. Nothing is bought.**
+- Base: 1 Alpaca free IEX 316 (63.2%), 2 Alpaca paid SIP (ranked only) 298 (59.6%), 3 Alpaca delayed SIP (free plan) 250 (50.0%). The lead is a near-tie (3.6 pp).
+- Robustness: 1 Alpaca free IEX 316, 2 Alpaca paid SIP 228; delayed SIP 194 `excluded (KO DP-1)`.
+- Two single-weight moves give rank 1 to paid SIP (DP-2 × 1.5, DP-8 × 0.5), so **this ranking is provisional**. Paid SIP is ranked only: buying it is a CLAUDE.md hard stop, and its $99/month is above the NFR-5 paper-test budget.
+- iNAV (R-27, outside the ranking): no candidate carries an indicative value for SPY, QQQ or IWM (section 8.1 finding). R-27 still has no documented free source.
+
+**Company-event sources (3.3b): ranking only. Nothing is bought.**
+- Base: 1 EDGAR only 396 (79.2%), 2 Alpaca/Benzinga news 310 (62.0%), 3 issuer IR RSS 260 (52.0%).
+- Robustness: 1 EDGAR only 372, 2 Alpaca/Benzinga news 250; issuer IR RSS 214 `excluded (KO DE-1)`.
+- No sensitivity flip. The ranking compares single sources; it does not score a combination (for example EDGAR for primary filings plus news for context).
+
+### 9.5 Skeptic's dissent (section 5.6)
+
+Written against the result above, from a skeptic's framing (MASTER_BRIEF working rules). Every number is from 9.2.
+
+#### Engines
+
+- **The base winner rests on unverified knock-out cells.** E-1 (weight 15, the only engine KO) is `unverified` for both packaged engines. The robustness change, NautilusTrader to custom on vectorbt, comes entirely from those two cells falling to 0. The result is therefore not "vectorbt is better". It is "no packaged engine has documented that our kernel can sit in front of every order path". If NautilusTrader's E-1 were verified at any score of 1 or more, its robustness total would be 302 or more, above vectorbt's 283. LEAN, with its E-5 cell still at worst, would need a verified 2 or more (286) to pass it. One install-check finding could reverse the robustness result either way.
+- **NautilusTrader's base lead is narrow and leans on several cited cells.** It leads LEAN by 22 points (4.4 pp, a near-tie). By criterion: E-11 +18, E-1 +15 (both cells `unverified`), E-6 +9, E-4 +8 and E-9 +8, against E-5 −16 (LEAN's cell `unverified`), E-3 −12 and E-7 −8. In the single-cell stress, any one of five NautilusTrader cells set to its worst plausible score hands rank 1 to LEAN: E-2, E-3, E-4, E-6 or E-11. Two of those, E-2 (parity) and E-6 (one event model, deterministic replay), rest on vendor claims. No single-weight move flips the winner (22 moves), but the narrowest lead is 2.5 pp (E-5 × 1.5).
+- **Strongest case for the runner-up, LEAN (310).** It has the best documented look-ahead guard (E-3 4: the Time Frontier, corporate actions as events) and the only documented adapters for three of the four candidate brokers, Alpaca among them (E-7 3). Its weak cells are cost and language: E-11 2 (a paid CLI tier), E-9 2 (a C# engine, Python 3.11.11 through a pythonnet fork). Those are burdens, not safety gaps. In the upper bound (every unverified cell at 5) LEAN ranks first (371 against 362).
+- **Strongest case for custom on vectorbt (rank 3 in base, rank 1 in robustness).** It is the only engine with no `unverified` cell. Its E-1 rests on a documented fact: the library has no order path. It is also the only candidate whose base install is documented to contain no broker SDK (E-5 4), so it is the one engine whose Phase 2 install-check might not install order-capable code. The skeptic's counterpoint: its E-1 4 and E-4 4 score a choke point and an order layer that we have not written. The robustness check cannot penalise unwritten code, and the low cells (E-2 1, E-6 2, E-7 0) say that we would build the live system ourselves.
+- **What the base leader would cost to check.** NautilusTrader's E-5 is 1: every live adapter ships in the base wheel, so installing it at all installs order-capable code. That is the hard stop the Phase 2 install-check needs explicit owner approval for. It also needs Python 3.13 or later, while this repo pins 3.12. Its last stable release was 1.231.0 (2026-08-02), and 2.0 is still at release candidates, so an install-check would test a moving target (section 6 notes 2 and 3).
+- **Limits of documentation-only evidence (plan risk R6).** Nothing was installed. Windows support is a documentation statement (NautilusTrader names Windows Server 2022+, not Windows 11; vectorbt's only Windows evidence is an "OS Independent" classifier). Parity and replay are vendor claims. Footprints are read from packaging metadata and repo layout. **The Phase 2 install-check must confirm, for each engine it covers:**
+  1. E-1: a test shows that our kernel wrapper intercepts every submit and modify path, including engine-internal ones: `close_position`, `close_all_positions`, `market_exit` and `manage_stop` (NautilusTrader); margin-call and delisting liquidations (LEAN). The test fails if any path bypasses the wrapper, and `RiskEngineConfig.bypass` can be pinned off.
+  2. E-4: every market-order path can be refused or disabled, with no fallback to a market order on liquidation, exit or stop.
+  3. E-5: which order-capable modules actually land on disk, and whether a backtest-only install exists.
+  4. E-8: install and a test run on the owner's Windows 11 PC (natively or under WSL2), not only on Windows Server.
+  5. E-9: `mypy --strict` passes at the engine boundary, and the Python version conflicts are resolved (NautilusTrader needs 3.13+; LEAN documents 3.11.11; the repo pins 3.12).
+  6. E-2 and E-6: replaying one recorded event stream twice gives identical decisions, and the documented backtest/live differences match what is seen.
+  7. E-3: point-in-time and corporate-action handling with free data only (LEAN's local corporate-action data is paid).
+
+#### Brokers
+
+- **The base lead is a near-tie.** Alpaca leads IBKR by 24 points (4.8 pp). By criterion: B-5 +16, B-8 +14, B-12 +12, B-13 +10 (IBKR's cell `unverified`), B-2 +9 (IBKR's cell `unverified`) and B-6 +9, against B-9 −21, B-4 −20 and B-10 −5. Nineteen of the 24 points come from the two IBKR cells that are `unverified` only because interactivebrokers.com returned 403. In the single-cell stress, four cited Alpaca cells at their worst plausible score each tie or reverse rank 1: B-5 (4 → 1, tie), B-11 (4 → 0, tie), B-6 (4 → 0, IBKR leads) and B-8 (5 → 1, IBKR leads). B-5's 4 rests on the absence of a documented key expiry, which section 7 itself says "is not a documented guarantee". No single-weight move flips rank 1 (26 moves), but the narrowest lead is 2.3 pp (B-4 × 1.5).
+- **Strongest case for the runner-up, IBKR (348).** It is the only candidate with a read-only API setting and IP restrictions (B-4 4, against Alpaca's 2), the only one with closed-lot and wash-sale exports (B-9 5, against 2), and it has client-assigned order IDs with execution IDs (B-11 4). These are the cells that bear on key theft (F-04) and tax correctness (rule 12). Even with both of its `unverified` cells at 5 (upper bound), IBKR reaches 367, still below Alpaca's 372. Against it: daily restarts and weekly re-authentication (B-5 2), no fractional orders through the API (B-12 0), and simulated stops in paper (B-6 3).
+- **Robustness changes.** Rank 1 does not change, but everything below it does. IBKR (KO B-2) and Schwab (KO B-1, B-2) drop out because their terms or order pages could not be read, not because of contrary evidence. Robinhood Agentic Trading moves to rank 2 (241), although it has no paper or sandbox environment (B-6 0, cited: "Real account, real money"), so no Phase 5 forward test could run on it. The robustness rank 2 is an artefact of page access.
+- **Schwab Trader API is more than 50% unverified by weight (71 of 100; 9 of 13 cells).** Its base total of 274 is mostly best estimates from a third-party wrapper (schwab-py). Its range is very wide: robustness 121 (`excluded (KO B-1, B-2)`) against an upper bound of 456, which would put it first. The matrix gives no reliable reading of Schwab: the result is "unknown", not "weak". The owner reading the developer portal could close 8 of the 9 cells (section 7 access notes).
+- **Anchoring on Alpaca.** Alpaca has 0 `unverified` cells because its documentation was readable to automated fetches; IBKR's and Schwab's pages returned 403 or needed a login. The robustness check turns that access gap into a 26.2 pp lead (Alpaca 372 against Robinhood 241, with IBKR and Schwab excluded). Cells where familiarity may have lifted Alpaca: B-1 4 (conditional orders are held by Alpaca as "Not Held" best-efforts orders, a plain stop "becomes a market order" once elected, and stops do not work in extended hours); B-5 4 (absence of evidence of a key expiry); B-12 4 (the fractional page contradicts itself). Alpaca also scored low where its own documents were explicit (B-4 2, B-7 2, B-9 2), which argues against a uniform lift. Net: familiarity mainly shows up as more Alpaca cells being `cited`, and that matters most in the robustness check.
+
+#### Price and reference-price feeds
+
+- **Two sensitivity flips: the ranking stays provisional.** With DP-2 (share of consolidated volume) at weight 21, paid SIP leads 314.44 to 298.42. With DP-8 (cost) at weight 5, paid SIP leads 314.56 to 305.78. Base rank 1 is also a near-tie (3.6 pp).
+- **Strongest case for the runner-up, Alpaca paid SIP (298).** It is the better data. It is consolidated across all exchanges (DP-2 5, against IEX's 1), while IEX is "approximately ~2.5% of the market volume" on a single exchange and is not the NBBO. Collars, the max-spread floor and the R-27 check (invariant 11) computed from IEX are computed from one venue. IEX leads only on cost and entitlement: DP-8 +50, DP-1 +24 and DP-9 +24 (paid SIP's DP-9 cell is `unverified`), against DP-2 −56, DP-4 −20 (paid SIP's cell `unverified`) and DP-10 −4. Paid SIP's DP-1 of 2 reflects partly that we do not hold the plan, which DP-8 also scores, so "not bought" counts in two criteria. None of this can change the outcome this phase: paid SIP cannot be bought (hard stop; above NFR-5).
+- **The cells the result leans on.** In the single-cell stress, any one of five IEX cells at its worst plausible score gives rank 1 to paid SIP: DP-3 (measured, 5 → 1), DP-5 (measured, 4 → 0), DP-6 (measured, 3 → 1), DP-8 (cited, 5 → 1) and DP-9 (cited, 5 → 1). The three measured cells come from one 35-minute window on one day (D18, commit `7c8205e`). DP-5's 4 rests on a clock correction estimated after the run: the PC clock was unsynchronised and about 0.52 s slow, and the raw skew median is about −510 ms (D18 "Clock").
+- **Robustness change.** Rank 1 does not change; delayed SIP drops out (`excluded (KO DP-1)`, two Alpaca pages conflict on its eligibility for a paper-only account). Paid SIP falls from 298 to 228.
+- **Anchoring and the measurement asymmetry: did it favour IEX?** In the robustness check, yes, structurally. IEX is the only feed the spike could measure (paper accounts receive IEX only), so it has 0 `unverified` cells, while both SIP options' DP-3, DP-4 and DP-9 cells drop to 1. Most of IEX's 17.6 pp robustness lead comes from that asymmetry. In the base scores the effect is mixed: measurement cut against IEX on DP-4 (measured 2, against paid SIP's unmeasured best estimate of 4) and for it on DP-3 (measured 5). In the upper bound IEX ranks last (delayed SIP 358, paid SIP 332, IEX 316), although delayed SIP's 15-minute delay (DP-5 0) rules it out for order decisions whatever its total.
+
+#### Company-event sources
+
+- **Strongest case for the runner-up, Alpaca/Benzinga news (310).** It has structured symbol tags (DE-6 4) and free access shown on our own key (DE-8 4, measured: REST returned 6 items and the stream acknowledged). It is the only event source whose REST path the spike exercised end to end. Against it: the items are reports, not issuer releases (DE-2 2; all 6 run items came from `fiscal.ai`, with no stated provenance); the stream never had a positive case (DE-5 2, `unverified`); and REST news on this key appears delayed by at least 15 minutes (D18 "News").
+- **The cells the result leans on.** EDGAR leads by 86 points (17.2 pp). DE-2 (primary source, weight 16) gives +48 of that on its own, and it is cited. No single EDGAR cell at its worst plausible score changes rank 1, and the narrowest lead over all sensitivity moves is 13.1 pp (DE-2 × 0.5). EDGAR's one `unverified` cell is DE-5 (liveness, 3). Its DE-4 (timeliness, 2) is cited from SEC documentation ("1-3 minutes", not guaranteed), not measured.
+- **Robustness change.** Rank 1 does not change; issuer IR RSS drops out (`excluded (KO DE-1)`: neither issuer's terms address RSS polling, and Apple's terms ban automatic devices in general).
+- **Anchoring.** IEX and Alpaca News are the only candidates with spike measurements. EDGAR's measurements were lost to our own bug: the run-1 poller died on its first poll (fixed in `1e9f906`), so G-9 failed on EDGAR and its DE-4 and DE-5 rest on SEC documents only. Familiarity did not lift Alpaca News to rank 1. Its liveness cell was moved down from measured 4 to `unverified` 2 after the owner's P-02 review. The risk runs the other way: the event-source rank 1 has no measurement of timeliness or liveness. Run 2 should re-score EDGAR DE-4 and DE-5 (section 8 note 7). The single-cell stress shows that one of those cells alone at its worst plausible score would not change rank 1.
+
+#### Across all tables
+
+- **The robustness check punishes unreadable pages as much as weak products.** Every robustness exclusion (NautilusTrader and LEAN on E-1, IBKR and Schwab on B-2 or B-1, delayed SIP on DP-1, IR RSS on DE-1) comes from a KO cell that is `unverified`, not from a cited 0. A cited 0 on a KO criterion does not appear anywhere in the matrix.
+- **The weights are a judgement, and the leads are thin.** Two single-weight moves of 50% change the price-feed rank 1. The engine, broker and price-feed rank-1 leads are all under 5 pp on base scores, so in three of the four tables a different but defensible weighting, or one re-scored cell, could reorder the top.
