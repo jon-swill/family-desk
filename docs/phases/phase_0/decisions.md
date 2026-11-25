@@ -1,6 +1,6 @@
 # Phase 0 decisions table: paper-test values
 
-Status: **owner decisions of 2026-11-25, paper-test values.** Every number below is a config value for paper trading. Each one is revisited at the Phase 6 live gate before any real money moves, and none is final until then. Recorded in `docs/RETRO.md` (closes debt item O3). Traces to `docs/PRD.md` v0.4.
+Status: **owner decisions of 2026-11-25, paper-test values.** Every number below is a config value for paper trading. Each one is revisited at the Phase 6 live gate before any real money moves, and none is final until then. Recorded in `docs/RETRO.md` (closes debt item O3). Traces to `docs/PRD.md` v0.4. D-21 to D-23 and the frozen E-1 parameters were added by the owner later on 2026-11-25, also as paper-test values.
 
 The values become fields in the signed limits config when Phase 3 builds it (trading invariant 2). Until then this file is the record. Changing a value follows the same rule as the config: risk-down changes are instant, while risk-up changes need owner review and a 24-hour delay.
 
@@ -30,8 +30,11 @@ This file holds limits, rules and owner planning figures only. It holds no accou
 | D-18 | Long-term picture | Year 1: a ~$30–40k desk. If it performs: ~$150k after a year. Goal: ~$1M in 5–6 years, **not super aggressive.** Risk is never tuned to chase the goal (§3) | §1 |
 | D-19 | Report cadence | Daily push, a weekly report with a check-in form (Sunday), a monthly review and a quarterly sleeve-size form. Each takes the owner under 2 minutes. Answers are saved in `docs/checkins/` | FR-24, FR-26 |
 | D-20 | Experiment E-1 | Pre-registered paper experiment on "take small profits, never sell below cost basis" (§2) | FR-31 |
+| D-21 | Tier B size threshold (Y%) | **3% of the desk** (~$1,050 at a $35k desk). The lower of Y% and the D-01 cap applies: a trade above either goes to owner approval (Tier B). At a $35k desk the $1,000 cap binds | FR-15, FR-16 |
+| D-22 | Approval expiry (N) | **15 minutes.** No answer = no trade. Nothing carries overnight: a request still open at the session close lapses, and an approved trade not placed by then is not placed the next day | FR-16 |
+| D-23 | Core rebalance bands | A core holding is out of band when its weight is **5 percentage points** away from target, or **25% of its target weight** away (relative), whichever comes first. **Checked monthly.** New cash is used to restore bands **before** anything is sold | FR-13 |
 
-Parameters not set by the owner yet are not filled in here. Examples are the risk mode thresholds outside the sleeve, core rebalance bands, Y% for Tier B and N minutes for approval expiry. The Phase 2 phase-plan lists them for the owner to set.
+Parameters not set by the owner yet are not filled in here. The main remaining example is the risk mode thresholds outside the sleeve. The Phase 2 phase-plan lists them for the owner to set. Also unset: the threshold above which a core rebalance needs approval (FR-16 "core rebalance above threshold").
 
 ## 2. Tracks and the experiment
 
@@ -56,7 +59,17 @@ Parameters not set by the owner yet are not filled in here. Examples are the ris
 - **Metrics:** win rate; average win vs average loss; capital stuck underwater (dollar-days and longest stretch below cost); results after all costs and estimated taxes vs C. Estimated taxes use published federal and NJ rules and are labelled "not CPA-reviewed" (PRD Phase 2).
 - **Benchmark:** arm C.
 - **Kill criterion:** an arm that does not beat C after costs and estimated taxes is not adopted as a strategy (invariant 7).
-- **Still to freeze before any data is looked at:** the dip definition, the profit target, B's stop distance, the ETF and stock lists, the test window and the tax assumptions. The Phase 2 phase-plan proposes them for owner approval. They are frozen in writing before the Phase 4 backtest runs (R-17 pre-registration; R-18 holdout).
+- **Frozen parameters (owner, 2026-11-25, paper-test values; R-17 pre-registration):**
+  - **Dip (entry):** a close at least **5%** below the 20-day high for ETFs, at least **8%** for single stocks.
+  - **Profit target (arms A and B):** sell at **+2% over cost basis**.
+  - **Arm B exit:** a stop at **2 × ATR(14)**, or a **10-day time stop**.
+  - **Backtest window:** **2010 to 2024.** **Holdout: 2025 onward, untouched** until the pre-registered final test (R-18).
+  - **Taxes:** gains taxed as short-term at **24% federal + 6.37% NJ** (30.37% combined). This is an assumption; the owner's own bracket replaces it later. Labelled "not CPA-reviewed".
+  - **Stock basket:** **AAPL, MSFT** and **3 more liquid large caps**, chosen and frozen in writing **before any data is viewed**.
+- **Still open before the backtest runs** (agent proposes, owner approves; frozen in writing before Phase 4):
+  - the 3 extra stock names (rule above);
+  - the ETF list and the index used for arm C (neither is named yet);
+  - exact definitions the values above leave open: whether the 20-day high is the highest close or the highest intraday high; whether +2% is before or after costs; whether arm B exits at whichever of the stop and the time stop comes first, and whether the stop is set from the entry price with ATR(14) as of entry; whether 10 days means trading days.
 - **Execution (owner, 2026-11-25):** all three arms are simulated on paper market data and forward-logged, with no broker orders. Arm A therefore never sits in the sleeve without a stop (D-13), and the arms stay comparable.
 - **Schedule:** a point-in-time backtest in Phase 4, then a forward simulated run alongside Phase 5 paper trading.
 
