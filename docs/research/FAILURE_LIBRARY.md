@@ -83,7 +83,8 @@ Learn from everyone who failed before us. Each entry: what happened, the root ca
 
 ## D. Counterparty, tax and legal failures
 
-### F-17 Custody failures (e.g. FTX, Nov 2022) [verify]
+### F-17 Custody failures (e.g. FTX, Nov 2022)
+- **What happened:** The SEC alleges a years-long fraud (from at least May 2019) in which billions of dollars of FTX customer funds were diverted to its affiliate Alameda Research and used for venture investments and loans to executives. On 8 November 2022 FTX paused all customer withdrawals, and on 11 November 2022 FTX, Alameda and affiliates filed for Chapter 11 in Delaware (Case No. 22-11068) ([SEC press release 2022-219, 13 Dec 2022](https://www.sec.gov/newsroom/press-releases/2022-219); [SEC complaint](https://www.sec.gov/files/litigation/complaints/2022/comp-pr2022-219.pdf), ¶¶1, 79). SIPC protection (up to $500,000 including $250,000 cash) covers missing customer cash and securities at a failed member broker, not market losses and not crypto assets that are not securities ([SIPC](https://www.sipc.org/for-investors/what-sipc-protects)).
 - **Control:** **R-39** Use only regulated, SIPC-member brokers for securities; no crypto custody in this phase.
 
 ### F-18 Wash-sale and tax surprises
