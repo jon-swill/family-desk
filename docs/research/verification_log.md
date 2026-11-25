@@ -55,6 +55,15 @@ One row per original verify marker (11 in total: 7 in FAILURE_LIBRARY, 4 in NEWS
 
 | # | Family · row | Claim | Original text | Primary source URL | Accessed | Verdict | Change made |
 |---|---|---|---|---|---|---|---|
+| 1.1 | 1 · SMA crossover | Crossovers have long research history; weak alone; reduce drawdowns | Long history of time-series momentum research; single-asset crossovers are weak alone but reduce deep drawdowns | https://doi.org/10.1111/j.1540-6261.1992.tb04681.x ; https://doi.org/10.1111/0022-1082.00163 (full text read) | 2026-11-25 | corrected | Cited BLL 1992 (in-sample support) and STW 1999 out-of-sample failure 1987–1996; drawdown claim marked unverified |
+| 1.2 | 1 · Price vs long moving average | Faber tactical allocation lowers drawdowns, lags in bull markets | Faber-style tactical allocation; lower drawdowns, often lower return in bull markets | https://doi.org/10.3905/jwm.2007.674809 (abstract) | 2026-11-25 | corrected | Cited Faber 2007 abstract; bull-market lag and post-publication results marked unverified |
+| 1.3 | 1 · Time-series momentum | MOP evidence; weaker in 2010s | Moskowitz-Ooi-Pedersen; managed-futures industry; weaker 2010s | https://doi.org/10.1016/j.jfineco.2011.11.003 ; https://doi.org/10.1016/j.jfineco.2019.08.004 ; https://doi.org/10.3905/jpm.2017.44.1.015 (abstracts / AQR summary) | 2026-11-25 | corrected | Cited MOP 2012; added Huang et al. 2020 challenge; "weaker 2010s" noted as not quantified |
+| 1.4 | 1 · Dual momentum | Practitioner method; OOS mixed | Popular practitioner method; out-of-sample results mixed | https://doi.org/10.2139/ssrn.2042750 (SSRN returned 403; abstract not read) | 2026-11-25 | unverifiable | Marked unverified with originator link and reason |
+| 1.5 | 1 · Donchian / turtle channel breakout | Worked in futures; weaker in stocks after costs | Worked in futures historically; much weaker in single stocks after costs | https://doi.org/10.1016/j.jbankfin.2009.08.004 (abstract via RePEc) ; https://doi.org/10.1111/j.1467-6419.2007.00519.x (abstract) | 2026-11-25 | confirmed | Cited Szakmary et al. 2010 and Park & Irwin 2007; noted turtle rules lack a primary study |
+| 1.6 | 1 · Trend pullback | Modest, parameter-sensitive edge | Common practitioner setup; edge modest and parameter-sensitive | none found | 2026-11-25 | unverifiable | Marked unverified (no primary study) |
+| 1.7 | 1 · ADX-filtered trend | Little rigorous evidence | Practitioner; little rigorous evidence | none online (Wilder 1978 book) | 2026-11-25 | unverifiable | Marked unverified |
+| 1.8 | 1 · MACD signal-line cross | Weak alone after costs | Weak on its own after costs | https://doi.org/10.1080/13504850600993598 ; https://doi.org/10.3390/jrfm7010001 (abstracts) | 2026-11-25 | corrected | Sources report MACD beating buy-and-hold in some indices; cell reworded; "after costs" claim not confirmed (flagged) |
+| 1.9 | 1 · Parabolic SAR / Supertrend / chandelier exits | Mostly useful as exits | Mostly useful as exits | none online (Wilder 1978 book) | 2026-11-25 | unverifiable | Marked unverified |
 
 ## 6. Broker and post-mortem sources (A4)
 
