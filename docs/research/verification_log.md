@@ -64,6 +64,11 @@ One row per original verify marker (11 in total: 7 in FAILURE_LIBRARY, 4 in NEWS
 | 1.7 | 1 · ADX-filtered trend | Little rigorous evidence | Practitioner; little rigorous evidence | none online (Wilder 1978 book) | 2026-11-25 | unverifiable | Marked unverified |
 | 1.8 | 1 · MACD signal-line cross | Weak alone after costs | Weak on its own after costs | https://doi.org/10.1080/13504850600993598 ; https://doi.org/10.3390/jrfm7010001 (abstracts) | 2026-11-25 | corrected | Sources report MACD beating buy-and-hold in some indices; cell reworded; "after costs" claim not confirmed (flagged) |
 | 1.9 | 1 · Parabolic SAR / Supertrend / chandelier exits | Mostly useful as exits | Mostly useful as exits | none online (Wilder 1978 book) | 2026-11-25 | unverifiable | Marked unverified |
+| 2.1 | 2 · 12-1 stock momentum | JT plus replication; weaker and crash-prone recently | Jegadeesh-Titman and decades of replication; weaker and crash-prone recently | https://doi.org/10.1111/j.1540-6261.1993.tb04702.x ; https://doi.org/10.1111/0022-1082.00342 ; https://doi.org/10.1016/j.jfineco.2015.12.002 ; https://doi.org/10.1111/jofi.12365 (abstracts) | 2026-11-25 | confirmed | Cited JT 1993, JT 2001 out-of-sample, Daniel-Moskowitz 2016 crashes, McLean-Pontiff 2016 decay; "weaker recently" noted as not quantified |
+| 2.2 | 2 · Sector / industry rotation | Documented; modest after costs | Documented; modest after costs | https://doi.org/10.1111/0022-1082.00146 (abstract) | 2026-11-25 | corrected | Cited Moskowitz-Grinblatt 1999 ("highly profitable"); after-cost claim marked unverified |
+| 2.3 | 2 · Asset-class rotation (GTAA) | Lower drawdowns, variable returns | Practitioner literature; lower drawdowns, variable returns | https://doi.org/10.3905/jwm.2007.674809 (abstract) | 2026-11-25 | confirmed | Cited Faber 2007 five-asset framework; "variable returns" unverified |
+| 2.4 | 2 · 52-week-high proximity | George-Hwang research | George-Hwang research | https://doi.org/10.1111/j.1540-6261.2004.00695.x (abstract) | 2026-11-25 | confirmed | Cited George-Hwang 2004 with year |
+| 2.5 | 2 · Earnings momentum / revisions | Documented | Documented; data often paid | https://doi.org/10.1111/j.1540-6261.1996.tb05222.x (abstract) | 2026-11-25 | confirmed | Cited Chan-Jegadeesh-Lakonishok 1996 |
 
 ## 6. Broker and post-mortem sources (A4)
 
