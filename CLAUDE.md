@@ -26,4 +26,10 @@ Python. Functional core, imperative shell: risk kernel, sizing, ledger and tax l
 Shell is PowerShell (or Git Bash if installed). Use `py`/`python` from the project's virtual environment in `.venv`. Paths with backslashes; never write outside the repo.
 
 ## Quality gates
-To be defined in Phase 1 (lint, type check, tests). Until then: `python -m pytest -q` must pass before any commit.
+Defined in Phase 1 (B1). All four must pass before any commit, run from the repo root with the `.venv` Python:
+1. `python -m ruff check .`
+2. `python -m ruff format --check .`
+3. `python -m mypy --strict src`
+4. `python -m pytest -q`
+
+Setup from a clean venv: `python -m pip install --require-hashes -r requirements-dev.lock`, then `python -m pip install --no-build-isolation --no-deps -e .`. Dependencies are exact-pinned with hashes in `requirements.lock` (runtime) and `requirements-dev.lock` (dev); regenerate with `python -m piptools compile --generate-hashes --strip-extras --allow-unsafe [--extra dev] -o <lock> pyproject.toml`.
