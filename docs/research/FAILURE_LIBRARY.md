@@ -93,6 +93,40 @@ Learn from everyone who failed before us. Each entry: what happened, the root ca
 ### F-19 Trading on inside information or conflicts
 - **Control:** **R-40** Restricted list is owner-maintained and starts empty; the kernel blocks every symbol on it (COMPLIANCE.md C-3).
 
+## E. Evidence and monitoring failures (from Phase 1 reviews)
+
+These patterns come from the Phase 1 plan reviews, not from a public incident. Each was owner-approved before being merged.
+
+### F-20 Unanchored audit trail
+- **What happened:** A hash chain checked only against itself still verifies after it is rewritten end to end or cut short at the tail.
+- **Root cause:** The chain's head is stored only inside the log it protects.
+- **Control:** **R-41** Each log's final `seq` and head hash are recorded somewhere independent (committed evidence, the daily owner digest). The verifier takes the expected head as input and fails on any mismatch. Source: `failure_library_proposals.md` P-01, from the Phase 1 plan review, 2026-11-24 (`docs/phases/phase_1/phase_1_eval.md`); owner-approved 2026-11-25; merged by A9.
+
+### F-21 Vacuous liveness ("silent equals fine")
+- **What happened:** A broken monitoring path (wrong subscription, a filter that never matches, a CIK padding mismatch, an empty positions list) produces the same "nothing happened" output as a healthy, quiet one.
+- **Root cause:** Silence is accepted as evidence without proof the path is alive.
+- **Control:** **R-42** Every data path proves it is alive on a known positive (subscription ack, unfiltered sample count, read-only REST cross-check, real payload) before its silence counts as evidence. Source: `failure_library_proposals.md` P-02, from the Phase 1 plan review, 2026-11-24 (`docs/phases/phase_1/phase_1_eval.md`); owner-approved 2026-11-25; merged by A9. The B10 spike run on 2026-11-25 showed the pattern for real: the EDGAR poller died on its first poll and nothing reported it for 35 minutes (proposal P-24, pending O6).
+
+### F-22 Spike code promoted to production
+- **What happened:** Prototype code and its bypass flags reach the production path without design review (compare F-01: retired code reactivated).
+- **Root cause:** Convenience: the spike already works, so it gets reused.
+- **Control:** **R-43** Spike code lives in a quarantined package that later phases must not import; bypass flags are removed before the next phase; production code is written from the reviewed spec. Source: `failure_library_proposals.md` P-03, from the Phase 1 plan review, 2026-11-24 (`docs/phases/phase_1/phase_1_eval.md`); owner-approved 2026-11-25; merged by A9.
+
+### F-23 Trade-capable key doing read-only work
+- **What happened:** Read-only intent is enforced only by our own code, because the key itself can trade (compare F-04).
+- **Root cause:** The broker offers no read-only key, or none was requested.
+- **Control:** **R-44** Use a read-only or least-privilege key wherever the broker offers one. Where it doesn't, record the accepted risk in RETRO and keep code guards over both code and dependencies. (For Phase 1 the owner accepted this risk: RETRO 2026-11-25.) Source: `failure_library_proposals.md` P-04, from the Phase 1 plan review, 2026-11-24 (`docs/phases/phase_1/phase_1_eval.md`); owner-approved 2026-11-25; merged by A9.
+
+### F-24 Shared-identifier attribution
+- **What happened:** One issuer identifier covers many instruments (a fund trust's CIK spans many ETFs), so an event for one is attributed to another, and the false match is welcomed as the long-awaited positive case.
+- **Root cause:** The symbol-to-identifier map assumes one-to-one.
+- **Control:** **R-45** Every symbol-to-identifier map records cardinality (unique / shared / none). Shared or missing identifiers never attribute an event to a single symbol unless a second key (series or class ID) also matches. Source: `failure_library_proposals.md` P-05, from the Phase 1 plan re-review, 2026-11-25 (`docs/phases/phase_1/phase_1_eval.md`); owner-approved 2026-11-25; merged by A9.
+
+### F-25 Shadowed safety check
+- **What happened:** A demo or test meant to show check X trips check Y first, so X is never shown working live, yet the evidence reads as if it were.
+- **Root cause:** Checks stop at the first failure and report no reason.
+- **Control:** **R-46** Every refusal reports a specific reason code (or the full list of failed checks), and every refusal demo asserts the code it intends to prove. Source: `failure_library_proposals.md` P-06, from the Phase 1 plan re-review, 2026-11-25 (`docs/phases/phase_1/phase_1_eval.md`); owner-approved 2026-11-25; merged by A9.
+
 ## Open questions for Phase 1
 - Find post-mortems of retail algo traders (blogs, r/algotrading) and add the top recurring causes.
 - Find documented incidents at Alpaca, Schwab and Robinhood APIs (outages, order bugs) and add them.
