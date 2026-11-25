@@ -1,6 +1,6 @@
 # PRD: Family Trading Desk
 
-Owner: Jonathan Swill · Status: Draft v0.2 (2026-11-24; v0.2 moves CPA review of the tax model to the Phase 6 gate) · Source: "Family Trading Desk — Project Plan & Prompt Pack" (claude.ai doc) and owner decisions in `docs/RETRO.md`.
+Owner: Jonathan Swill · Status: Draft v0.3 (2026-11-25; v0.3 adds proposed Phase 2 requirements FR-27–FR-30; v0.2 moved CPA review of the tax model to the Phase 6 gate) · Source: "Family Trading Desk — Project Plan & Prompt Pack" (claude.ai doc) and owner decisions in `docs/RETRO.md`.
 
 Requirement IDs are stable. Phase plans must trace every deliverable to an ID here.
 
@@ -69,6 +69,15 @@ Household only. The system never manages money for anyone outside the household 
 - **FR-24** Daily dashboard: holdings by bucket/asset/sector, P&L vs benchmark, risk mode and limit headroom, pending approvals, tax reserve vs target, costs vs budget, fees saved vs 1%.
 - **FR-25** Command channel with fixed grammar (no LLM parsing), allowlisted user IDs, TOTP for risk-up.
 - **FR-26** Daily journal and weekly scorecard (strategy vs baselines after costs, limit breaches, rejections, incidents).
+
+### Proposed for Phase 2 (owner, 2026-11-25)
+
+**Status: proposed.** These are not yet accepted requirements. The Phase 2 phase-plan and plan-review decide their scope, and the owner accepts or rejects each one. Their IDs stay fixed either way.
+
+- **FR-27 (proposed)** Modular, versioned interfaces for the data, strategy, kernel, broker and LLM layers, so each can be swapped without changing the others. Extends FR-3. Swapping the kernel stays under the owner-diff-review hard stop and trading invariant 2.
+- **FR-28 (proposed)** An UPGRADE risk mode that halts the short-term (active) sleeve, holds the core, and leaves protective stops resting at the broker (invariant 4). Entering it is instant, like any move toward safety. Leaving it is a risk-up move and follows FR-12 like any other: an owner command, a one-time code and the standard delay (FR-25, invariant 3).
+- **FR-29 (proposed)** Regime-anomaly detection that may only move the risk mode in the defensive direction. It never raises risk or leaves a defensive mode. It is subject to FR-13 and invariant 3, so LLMs never trigger mode changes.
+- **FR-30 (proposed)** An improvement loop in which agents propose changes only as pull requests. Each change goes through pre-registration (FR-6, invariant 7), a paper forward test (FR-5) and owner approval before merge. Nothing self-modifies in live.
 
 ## 4. Non-functional requirements
 
