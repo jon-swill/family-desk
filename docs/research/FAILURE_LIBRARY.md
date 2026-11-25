@@ -71,7 +71,7 @@ Learn from everyone who failed before us. Each entry: what happened, the root ca
 ## C. Human and behavioral failures
 
 ### F-14 Day traders overwhelmingly lose
-- **What happened:** Of individuals who day traded Brazilian equity futures for more than 300 days, 97% lost money and only 1.1% earned more than the minimum wage ([Chague, De-Losso & Giovannetti](https://papers.ssrn.com/sol3/papers....act_id%3D3423101)); the authors find no evidence of learning by day trading ([working paper](https://repositorioslatinoamericanos.uchile.cl/handle/2250/5040005)).
+- **What happened:** Of individuals who began day trading Brazilian equity futures in 2013–2015 and persisted for at least 300 days, 97% lost money and only 0.4% earned more than a bank teller (US$54 a day) ([Chague, De-Losso & Giovannetti, "Day Trading for a Living?", SSRN 3423101](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3423101)); the authors find no evidence of learning by day trading ([working paper, FGV EESP TD 525, 2020](https://repositorioslatinoamericanos.uchile.cl/handle/2250/5040005)).
 - **Control:** **R-36** Day trading is never the core; it lives only in the capped sleeve, must beat the index after costs in forward tests, and is off by default.
 
 ### F-15 Overtrading and the disposition effect

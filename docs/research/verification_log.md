@@ -18,6 +18,7 @@ One row per original verify marker (11 in total: 7 in FAILURE_LIBRARY, 4 in NEWS
 
 | # | File · location | Original link | Problem | Replacement primary source | Accessed | Verdict | Change made |
 |---|---|---|---|---|---|---|---|
+| 1 | FAILURE_LIBRARY · F-14 | https://papers.ssrn.com/sol3/papers....act_id%3D3423101 | Truncated URL (HTTP 404) | https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3423101 (correct SSRN abstract page; SSRN serves a bot challenge to automated clients, so paper identity was confirmed via https://ideas.repec.org/p/fgv/eesptd/525.html and the FGV TD 525 record https://repositorioslatinoamericanos.uchile.cl/handle/2250/5040005, whose abstract was read via the repository API) | 2026-11-25 | corrected | Link fixed. The readable abstract (FGV TD 525, 2020; same in USP WP 2019_47) gives "97% of them lost money, only 0.4% earned more than a bank teller (US$54 per day)" for those who persisted at least 300 days; the old "1.1% earned more than the minimum wage" figure could not be read on any source page, so it was replaced by the 0.4%/bank-teller figure and "more than 300 days" became "at least 300 days". Root cause and rule R-36 unchanged |
 
 ## 3. NEWS_AND_DATA_STACK verify markers and links (A2)
 
