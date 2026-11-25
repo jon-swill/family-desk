@@ -42,6 +42,11 @@ class RefusedRequestError(PermissionError):
     """Raised before any byte is sent."""
 
 
+class TransportFailureError(ConnectionError):
+    """Network-level failure (timeout, refused, reset, protocol). An OSError, so every
+    caller's network-error path handles it. Carries only the error type, never the URL."""
+
+
 @dataclass(frozen=True)
 class HttpResponse:
     status: int
@@ -140,9 +145,14 @@ class HttpxTransport:
         headers: Mapping[str, str],
         timeout_s: float,
     ) -> HttpResponse:
-        resp = await self.client.get(
-            url, params=dict(params), headers=dict(headers), timeout=timeout_s
-        )
+        try:
+            resp = await self.client.get(
+                url, params=dict(params), headers=dict(headers), timeout=timeout_s
+            )
+        except httpx.TransportError as exc:
+            # httpx errors are not OSError; callers back off on OSError (R-23). Without
+            # this, one SEC timeout killed the EDGAR poller (failure-check, 2026-11-25).
+            raise TransportFailureError(type(exc).__name__) from exc
         body = resp.content[:MAX_BODY_BYTES]
         return HttpResponse(status=resp.status_code, body=body, headers=dict(resp.headers))
 

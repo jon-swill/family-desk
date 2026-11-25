@@ -244,6 +244,12 @@ class WebsocketsAdapter:
 
 async def websockets_connector(url: str) -> WebSocketLike:
     from websockets.asyncio.client import connect
+    from websockets.exceptions import WebSocketException
 
-    conn = await connect(url, open_timeout=15, max_size=2**22, ping_interval=20)
+    try:
+        conn = await connect(url, open_timeout=15, max_size=2**22, ping_interval=20)
+    except WebSocketException as exc:
+        # A refused handshake (e.g. HTTP 429/5xx) is not an OSError; map it so the
+        # session counts it and backs off instead of the task dying (R-23).
+        raise StreamClosedError(f"handshake failed: {type(exc).__name__}") from exc
     return WebsocketsAdapter(conn)
