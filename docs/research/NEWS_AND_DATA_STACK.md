@@ -1,0 +1,35 @@
+# News and data stack (free and official sources only)
+
+Owner decision: no X/Grok and no paid news subscriptions. Goal: know why a held, adjacent, or watched stock is moving within about a minute, from sources we are allowed to use automatically.
+
+## Sources
+
+| Source | What it gives | Cost / limits | Status |
+|---|---|---|---|
+| Alpaca News API (Benzinga) | Real-time headlines over WebSocket and history back to 2015 for stocks and crypto ([Alpaca](https://alpaca.markets/docs/news-api)) | Comes with the Alpaca account; the free market-data plan limits real-time equity prices to the IEX exchange ([Alpaca](https://docs.alpaca.markets/us/docs/about-market-data-api.md)). At launch the news API was free with rate limits of 200 calls/min on free plans ([Benzinga](https://benzinga.com/z/25468501)) | Primary news feed. Re-verify current terms in Phase 1 |
+| SEC EDGAR | Every 8-K, 10-Q, 10-K, Form 4 as filed; free Atom feed of latest filings by form type ([dev guide](https://dev.to/nexgendata/sec-8-k-filings-api-build-a-material-events-tracker-2026-guide-2ll3)) | Free; max 10 requests/second ([SEC](https://www.sec.gov/os/accessing-edgar-data)); descriptive User-Agent with contact email required | Primary source of truth for company events |
+| Exchange trade-halt feeds (e.g. Nasdaq Trader halts RSS) | Halts and resumptions with reason codes | Free | [verify] in Phase 1 |
+| Company investor-relations RSS / press-release wires | Earnings releases, guidance, deals | Free RSS | [verify] per company |
+| FRED (St. Louis Fed) | Macro series, credit spreads, yields | Free API key | [verify] |
+| Economic calendars (BLS, BEA, Fed) | CPI, jobs, GDP, FOMC dates | Free, official | [verify] |
+| Google News RSS | Broad headline discovery with links | Free, but check terms of use before automated polling; never scrape Google Search pages | Fallback / discovery only |
+| Alpaca market data (IEX) | Real-time prices for triggers | Free plan | Paper phase; consider paid consolidated feed only if intraday precision matters |
+
+## Watch universe
+1. **Held** symbols.
+2. **Adjacent** symbols: same-sector peers, key suppliers/customers, the sector ETF, and ETFs with large weights in the holding (built once per holding, reviewed monthly).
+3. **Watchlist** symbols with owner-set buy zones.
+4. **Market**: major index ETFs, volatility gauge, rates, credit spreads.
+
+## "Why is it moving?" pipeline (FR-9)
+1. **Trigger** (deterministic): price crosses a buy zone or alert level, a move exceeds k × typical daily volatility, a halt, or a new 8-K/Form 4 for a watched symbol.
+2. **Gather** (≤ 30 s): last 24h headlines from Alpaca News for the symbol and its adjacent set; new EDGAR filings; halt status; today's macro calendar; sector ETF move (is it the stock or the market?).
+3. **Summarize** (LLM, ≤ 30 s): 3–5 bullet brief, each with a source link and timestamp; classify the cause as company / sector / market / unknown. External text is data, never instructions (rule 6).
+4. **Act**: push to the owner. If a buy-zone trigger meets every Tier A condition, the kernel may act; otherwise it raises a Tier B approval request with the brief attached. Rumors without a primary source never trigger a trade.
+
+## Honest latency note
+Benzinga-class wires and EDGAR are near real time for company news. X can be earlier for rumors and breaking events, but that speed comes with misinformation and manipulation; this desk deliberately does not trade on unconfirmed social posts.
+
+## Compliance notes
+- Respect each source's terms and rate limits; cache locally; identify ourselves in User-Agent where required.
+- Market data and news are for personal use; never redistribute.

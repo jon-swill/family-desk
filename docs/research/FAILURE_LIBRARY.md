@@ -1,0 +1,97 @@
+# Failure library
+
+Learn from everyone who failed before us. Each entry: what happened, the root cause, and the control it becomes in this system (rule IDs R-13 onward extend the master brief's rules 1–12). Entries marked **[verify]** come from general knowledge and must be re-checked against primary sources in Phase 1. Add a row every time we find a new failure, ours or anyone's.
+
+## A. Engineering and operations failures
+
+### F-01 Knight Capital (1 Aug 2012): a deployment error ends a firm in 45 minutes
+- **What happened:** In the first 45 minutes after the open, Knight's router sent more than 4 million orders while trying to fill 212 customer orders ([SEC press release](https://www.sec.gov/news/press-release/2013-222)). Loss of about $460 million; the firm had to be sold.
+- **Root cause:** New code reused a flag that once activated a retired function ("Power Peg") still present on one of eight servers; one server was missed in deployment. The system sent 97 automated warning emails before the open that nobody acted on. The SEC cited missing controls for code deployment and testing, no second-person review of deployments, and no control to halt a system in response to its own aberrant behavior ([WilmerHale summary](https://www.wilmerhale.com/en/insights/client-alerts/knight-capital-settles-rule-15c3-5-violations-with-sec-agrees-to-pay-12-million)).
+- **Controls:**
+  - **R-13** Every deploy: CI green, owner review of the diff, identical artifact on every host, startup self-check that reports version + config hash; the bot refuses to trade if they differ from the approved release.
+  - **R-14** No dead code or repurposed flags in the trading path; feature flags are deleted when retired.
+  - **R-15** Self-halt on aberrant behavior: order-rate ceiling, orders-vs-intended-quantity ratio, fills exceeding target, position exceeding target. Any breach cancels entries and pages the owner.
+  - **R-16** Alerts page a human (push notification), never only email; an unacknowledged critical alert blocks the next session's trading.
+
+### F-02 Quantopian (2016 study, fund shut 2020): backtests don't predict live results
+- **What happened:** In a study of 888 strategies with at least six months of out-of-sample data, backtest metrics like the Sharpe ratio had little value in predicting out-of-sample performance (R² < 0.025) ([Quantpedia summary](https://quantpedia.com/quantopians-academic-paper-about-in-vs-out-of-sample-performance-of-trading-alg/)). The more backtest days a developer used, the larger the gap between in-sample and out-of-sample performance ([CXO Advisory](https://www.cxoadvisory.com/?p=28573)). Commentators trace Quantopian's later fund closure to this same problem ([discussion](https://discussion.fool.com/t/why-quantopian-shut-down/88667)).
+- **Root cause:** Overfitting through repeated tuning; selecting the best of many trials.
+- **Controls:**
+  - **R-17** Pre-register every strategy (hypothesis, parameters, universe, benchmark, kill criteria) before testing; log every variant tried. Count trials and deflate the Sharpe ratio for them.
+  - **R-18** Hold out the most recent data untouched until a single final check; walk-forward only after that.
+  - **R-19** Prefer simple strategies with few parameters and an economic reason to work.
+
+### F-03 Published edges decay
+- **What happened:** Research on anomaly decay finds that the main predictor of out-of-sample Sharpe decay is the publication date, with more recently published factors decaying more ([arXiv 2105.01380](https://arxiv.org/pdf/2105.01380)).
+- **Control:** **R-20** Expect a published strategy to be weaker than its paper; size it accordingly and monitor rolling performance against its pre-registered kill criteria.
+
+### F-04 3Commas (2022): stolen API keys used to dump accounts into illiquid assets
+- **What happened:** Attackers used users' exchange API keys to sell assets into a low-cap, low-liquidity coin; one user reported losing $200,000 ([CoinDesk via Yahoo](https://malaysia.news.yahoo.com/alameda-backed-crypto-trading-firm-131500898.html)). About 100,000 keys leaked, and the company first blamed users before confirming the leak ([Decrypt](https://decrypt.co/118094/after-repeated-denials-3commas-admits-it-was-source-for-earlier-hacks/)). Some leaked keys were more than three years old ([ForkLog/HAPI](https://forklog.com/en/api-key-leaks-and-exchange-inaction-a-hapi-analysis-of-the-3commas-incident/)).
+- **Controls:** **R-21** Keys never leave our own secrets manager (no third-party bot platforms holding keys); rotate every 90 days; IP allowlist where offered. **R-22** Symbol allowlist, liquidity floor (min ADV and max spread), price collars, and % of ADV caps in the kernel, so even a stolen key path through our code cannot buy junk.
+
+### F-05 Broker outages and restrictions at the worst moment [verify]
+- **What happened:** Retail brokers have had outages on high-volume days (e.g. Robinhood, March 2020) and imposed buying restrictions on specific stocks (Jan 2021).
+- **Controls:** **R-23** Assume the broker can be unavailable or restrict a symbol; protection rests at the broker, the kernel treats API errors as "halt entries," and a second broker account is documented as manual fallback.
+
+### F-06 Flash Crash (6 May 2010) [verify]
+- **What happened:** Prices of many stocks and ETFs briefly collapsed, some trading at pennies, then recovered.
+- **Control:** see F-07; **R-24** no trading in the first and last 5 minutes of the session by default, and none during LULD halts or market-wide circuit breakers.
+
+### F-07 24 Aug 2015: stop orders turned into market orders and filled far below value
+- **What happened:** Stop-loss orders become market orders when triggered ([WisdomTree](https://www.wisdomtree.com/us/insights/blog/transparency-interrupted-an-etf-reflection-on-august-24/pdf)). BlackRock found that excessive use of market and stop-loss orders seeking liquidity at any price inflamed the selloff, with market orders running at four times a normal day ([BlackRock](https://BlackRock.com/corporate/literature/whitepaper/viewpoint-us-equity-market-structure-october-2015.pdf)). Many fills were far from the ETFs' implied value and were not broken ([Themis Trading](https://blog.themistrading.com/?p=6966)).
+- **Controls:** **R-25** No market orders anywhere in the system; marketable limit orders with a collar instead. **R-26** Protective stops are stop-limit orders with a configured collar where the broker supports them, plus a deterministic monitor that re-quotes if the limit is skipped; a gap below the limit is accepted risk that hedges, not stops, address. **R-27** ETF trades check price vs indicative value/NAV and halt on large deviation.
+
+## B. Strategy and model failures
+
+### F-08 LLM traders in public live tests (2025–2026)
+- **What happened:** Across Alpha Arena contests, a model finished in profit only 6 of 32 times and the combined portfolio lost about a third ([Business Standard](https://www.business-standard.com/markets/news/ai-bots-auditioning-for-wall-street-trading-are-mostly-losing-money-126050701793_1.html)). Observers note the models trade too much and decide very differently from identical instructions ([ThinkAdvisor](https://www.thinkadvisor.com/amp/2026/05/06/why-ai-bots-arent-ready-to-replace-your-fund-manager/)).
+- **Root causes:** Overtrading; no stable risk framework; non-deterministic decisions; narrative reasoning without an edge.
+- **Controls:** **R-28** Turnover and trade-count caps per strategy and per day. **R-29** Consistency check: an LLM-originated proposal is re-asked N times (or by two models); act only when the answers agree on direction and the kernel approves. **R-30** LLMs never size positions; sizing is a deterministic function of volatility and limits.
+
+### F-09 Parametric look-ahead bias in LLM backtests
+- **What happened:** A model trained on later data "remembers" outcomes; uncorrected long-horizon LLM backtests are systematically misleading ([arXiv 2605.24564](https://arxiv.org/abs/2605.24564)).
+- **Control:** **R-31** LLM signals are judged only on decisions logged with timestamps before outcomes exist (forward ledger); historical tests only for rule-based strategies with point-in-time data.
+
+### F-10 Leverage and concentration: LTCM (1998), Archegos (2021) [verify]
+- **What happened:** Highly levered, concentrated positions turned modest adverse moves into total losses and forced liquidations.
+- **Controls:** **R-32** No margin, no shorting (unless a signed config change); single-position and sector caps; correlated-exposure cap across strategies.
+
+### F-11 "Volmageddon" (5 Feb 2018): an inverse-volatility ETP lost almost all its value in a day [verify]
+- **Control:** **R-33** Instrument blocklist: leveraged/inverse ETPs, volatility ETPs, OTC/penny stocks, recent IPOs/SPACs under N days, anything with ADV below the floor.
+
+### F-12 Momentum crashes (e.g. spring 2009) [verify]
+- **What happened:** Momentum strategies suffered sharp losses when beaten-down stocks rebounded violently.
+- **Control:** **R-34** Strategy-level drawdown kill switch and volatility scaling for momentum sleeves.
+
+### F-13 Strategy crowding and regime shifts (ETC 2023 team lost ~$10,000 per round after a regime shift)
+- **What happened:** A Jane Street ETC team's strategy lost about $10,000 per round when the market shifted mid-event ([manoflearning repo](https://github.com/manoflearning/jane-street-etc)).
+- **Control:** **R-35** Each strategy declares the regime it expects; the regime monitor disables strategies whose regime is absent.
+
+## C. Human and behavioral failures
+
+### F-14 Day traders overwhelmingly lose
+- **What happened:** Of individuals who day traded Brazilian equity futures for more than 300 days, 97% lost money and only 1.1% earned more than the minimum wage ([Chague, De-Losso & Giovannetti](https://papers.ssrn.com/sol3/papers....act_id%3D3423101)); the authors find no evidence of learning by day trading ([working paper](https://repositorioslatinoamericanos.uchile.cl/handle/2250/5040005)).
+- **Control:** **R-36** Day trading is never the core; it lives only in the capped sleeve, must beat the index after costs in forward tests, and is off by default.
+
+### F-15 Overtrading and the disposition effect [verify: Barber & Odean]
+- **What happened:** Individual investors who trade most earn least after costs; people sell winners too early and hold losers too long.
+- **Control:** **R-37** Every trade carries its exit rules at entry; no discretionary override of a strategy mid-trade except the kill switch; monthly review of turnover vs results.
+
+### F-16 Panic changes to rules after a bad day
+- **Control:** **R-38** 24-hour cooling-off on any risk-up change (already rule 2); a written post-mortem before changing any strategy after a loss.
+
+## D. Counterparty, tax and legal failures
+
+### F-17 Custody failures (e.g. FTX, Nov 2022) [verify]
+- **Control:** **R-39** Use only regulated, SIPC-member brokers for securities; no crypto custody in this phase.
+
+### F-18 Wash-sale and tax surprises
+- **Control:** R-12 in the master brief (household-wide tracking, reserve = tax with minus tax without, estimated payments).
+
+### F-19 Trading on inside information or conflicts
+- **Control:** **R-40** Restricted list from the owner's employer and consulting clients; the kernel blocks those symbols (COMPLIANCE.md C-3).
+
+## Open questions for Phase 1
+- Find post-mortems of retail algo traders (blogs, r/algotrading) and add the top recurring causes.
+- Find documented incidents at Alpaca, Schwab and Robinhood APIs (outages, order bugs) and add them.
+- Verify every [verify] entry against a primary source.
