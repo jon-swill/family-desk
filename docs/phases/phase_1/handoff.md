@@ -18,7 +18,7 @@ B1–B9, B12, A1–A8, A10, A11, G1. B11 run-1 evidence is written (`spike_evide
    ```
    A pass shows `edgar cycles` near 35 with `pre_filter_min` > 0, a numeric `mean_rps` ≤ 1, `news_rest_watchlist` ≥ 1, `news_stream` with `delivery_proven: True` and a cross-check verdict, and no `ERROR: source task` or `STALL:` line. The stream now subscribes to `"*"`. If Alpaca refuses that on the free plan (for example code 405 or 409), the run prints `ERROR: source task 'news' ended`; stop and tell the agent. Paste both outputs to the agent.
 
-3. **O6:** approve or reject P-07 to P-28 in `docs/research/failure_library_proposals.md`. The new ones from today are P-23 (schema drift), P-24 (silent worker death), P-25 (unsynced clock), P-26 (fakes raise different errors from the real adapter) and P-27 (egress allowlist covers HTTP only). From the dry run: P-28 (host suspend freezes the process unnoticed).
+3. ~~**O6**~~ **Done by the owner 2026-11-25:** P-07 to P-28 approved, ten with amendments; A9 merged them as F-26 to F-47 / R-47 to R-68. Open from it: whether an Alpaca GTC stop-limit can elect outside regular hours (docs silent; R-49 assumes yes). Settle it with a paper test or Alpaca support before Phase 3.
 
 4. ~~**Engine choice (G-1, decided at G3).**~~ **Decided by the owner 2026-11-25 (RETRO):** moved to the Phase 2 install-check, packaged engine for backtests only, own execution loop behind the kernel. Confirm it in the G3 sign-off row. Original text: The robustness check excludes NautilusTrader and LEAN, because neither documents a kernel choke point in front of every order path (E-1, a knock-out). So the matrix makes no engine recommendation. Choose one: (a) record that the engine choice moves to the Phase 2 install-check (an install needs your explicit approval), or (b) ask for E-1 to be verified first.
 
@@ -30,4 +30,4 @@ B1–B9, B12, A1–A8, A10, A11, G1. B11 run-1 evidence is written (`spike_evide
 - **Earlier, still open:** the A5 matrix method choices, and the A3/A6/A7 notes in the previous hand-off (git history of this file, commit `839fca9`).
 
 ## Next agent tasks once the above is done
-B11 run 2 section and new anchor → re-score EDGAR DE-4/DE-5 (and A8 if a total moves) → A9 for O6-approved rows → re-run G1.
+B11 run 2 section and new anchor → re-score EDGAR DE-4/DE-5 (and A8 if a total moves) → re-run G1 (G-4 should now pass).
