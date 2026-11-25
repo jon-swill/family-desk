@@ -27,7 +27,7 @@ base_url = "https://www.sec.gov"
 symbols = ["AAPL", "MSFT"]
 poll_seconds = 60
 max_requests_per_second = 1.0
-feed_count = 100
+feed_count = 40
 block_backoff_seconds = 600
 
 [run]

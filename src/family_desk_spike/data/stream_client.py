@@ -14,6 +14,7 @@ Error policy (codes per Alpaca's stream docs; confirmed in A2):
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import random
 from collections.abc import Awaitable, Callable, Sequence
@@ -76,7 +77,7 @@ class StreamSession:
     backoff_max: float = 60.0
     connection_limit_backoff: float = 60.0
     poll_seconds: float = 1.0
-    rand: Callable[[], float] = field(default=random.random)  # noqa: S311 - jitter, not crypto
+    rand: Callable[[], float] = field(default=random.random)  # jitter, not crypto
     sleep: Sleep | None = None
     counters: StreamCounters = field(default_factory=StreamCounters)
 
@@ -90,10 +91,8 @@ class StreamSession:
         if self.sleep is not None:
             await self.sleep(seconds)
             return
-        try:
+        with contextlib.suppress(TimeoutError):
             await asyncio.wait_for(self.stop.wait(), timeout=seconds)
-        except TimeoutError:
-            pass
 
     def _auth_frame(self) -> str:
         return json.dumps(
@@ -205,10 +204,8 @@ def _ack_detail(ack: SubscriptionAck) -> str:
 
 
 async def _close_quietly(ws: WebSocketLike) -> None:
-    try:
+    with contextlib.suppress(OSError):  # StreamClosedError is an OSError
         await ws.close()
-    except (OSError, StreamClosedError):
-        pass
 
 
 def symbols_list(symbols: Sequence[str]) -> list[str]:

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!-- SYNTHETIC. Shaped like the per-company feed browse-edgar?action=getcompany&CIK=0000320193&type=8-K&output=atom (A2, 2026-11-25). -->
+<feed xmlns="http://www.w3.org/2005/Atom">
+<author><email>webmaster@sec.gov</email><name>Webmaster</name></author>
+<company-info>
+<cik>0000320193</cik>
+<conformed-name>Apple Inc.</conformed-name>
+</company-info>
+<entry>
+<category label="form type" scheme="https://www.sec.gov/" term="8-K" />
+<content type="text/xml">
+<accession-number>0000320193-26-000010</accession-number>
+<filing-date>2026-10-30</filing-date>
+<filing-href>https://www.sec.gov/Archives/edgar/data/320193/000032019326000010/0000320193-26-000010-index.htm</filing-href>
+<filing-type>8-K</filing-type>
+<form-name>Current report</form-name>
+</content>
+<id>urn:tag:sec.gov,2008:accession-number=0000320193-26-000010</id>
+<link href="https://www.sec.gov/Archives/edgar/data/320193/000032019326000010/0000320193-26-000010-index.htm" rel="alternate" type="text/html" />
+<summary type="html"> &lt;b&gt;Filed:&lt;/b&gt; 2026-10-30</summary>
+<title>8-K  - Current report</title>
+<updated>2026-10-30T16:30:45-04:00</updated>
+</entry>
+</feed>
