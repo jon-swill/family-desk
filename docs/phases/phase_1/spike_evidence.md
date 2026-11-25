@@ -4,6 +4,8 @@ Written 2026-11-25 by the agent (B11) from the run's summary record and `verify_
 
 ## Verdict on G-9: **FAIL, rerun required (EDGAR)**
 
+A dry run on the afternoon of 25 Nov (section "Dry run" below) is not run 2 and doesn't change this verdict.
+
 The run proved account, positions, both stream acks, quotes for all 5 symbols and the REST news path. But the EDGAR poller died on its first poll, so no EDGAR cycle completed and the pre-filter entry count is missing for every cycle. G-9's rerun rule ("the EDGAR pre-filter count is 0 in every cycle") applies. The criterion is not relaxed. The fix is commit `1e9f906`. The owner must do a new run in another session (see "Rerun" below), and this file gets a "Run 2" section from that run's output.
 
 | G-9 item | Result | Field |
@@ -61,6 +63,8 @@ count[summary]=2
 ```
 
 phase-gate re-runs it with `--expect-head 33ef7973c568a40260ee1a3493bb969fc9df2d0f0574d46e7ca522c4ca37c2ff`.
+
+**Superseded 2026-11-25 by the dry run** (below), which appended to the same file. Run 1's last record (seq 1535455) still carries `33ef7973…c2ff` inside the verified chain, but the file's head is now `0248516c…6890` at seq 2378936, so `--expect-head 33ef…` now fails by design. Use the dry-run anchor.
 
 ## Quotes (IEX, free plan)
 
@@ -174,9 +178,150 @@ RESULT: all not found
 
 Both are `proposed`; O6 decides them.
 
+## Dry run, 2026-11-25 (not run 2; G-9 still needs run 2)
+
+The owner ran the spike once more on 25 Nov to try the `"*"` news subscription and the clock sync before run 2. It is **not** the G-9 rerun and doesn't change the G-9 verdict. Written by the agent from the log records and the Windows event log only (counts, times, settings; no news text, no secrets).
+
+### Identity and anchor
+
+| Field | Value |
+|---|---|
+| Command | `python -m family_desk_spike --duration-min 35` |
+| Commit / config sha256 | `96575405770657e8fad0257641a294b443f3ad9f` / `6954a056…0616` (same config as run 1) |
+| Log | `logs/spike/2026-11-25.jsonl`, appended after run 1: seq 1535456–2378936 |
+| Started (log time) | 12:21:03 ET (17:21:03.47Z); `clock` is_open true, `next_close` 16:00 ET; `run_window` refused `[]` |
+| Live data until | **12:43:12 ET** (last quote received 17:43:11.94Z). Only **22.1 minutes** of the 35 were live |
+| Summary written | **14:00:08 ET** (19:00:08.18Z), not 12:56 |
+
+`python -m family_desk_spike.verify_log logs\spike\2026-11-25.jsonl`, run by the agent 2026-11-25 after the dry run:
+
+```
+chain OK
+seq_last=2378936
+head_hash=0248516c96948fdcad33a7d32d222d8183932289f42875b521066d7f057c6890
+records=2378936
+count[account]=2
+count[clock]=3
+count[edgar.cik_map]=2
+count[edgar.cycle]=23
+count[error]=1
+count[iex.ack]=2
+count[iex.event]=9
+count[iex.staleness]=7
+count[news.ack]=2
+count[news.cross_check]=6
+count[news.event]=9
+count[news.heartbeat]=54
+count[news.rest]=11
+count[positions]=2
+count[quote]=2378792
+count[run_window]=3
+count[schema_drift]=2
+count[startup]=3
+count[summary]=3
+```
+
+phase-gate now re-runs it with `--expect-head 0248516c96948fdcad33a7d32d222d8183932289f42875b521066d7f057c6890`.
+
+### What worked
+
+- Chain OK; account and positions read (1, SPY); quote ack for all 5 symbols.
+- **News stream `"*"` on the free plan works.** The ack (seq 1535473) is `news: ["*"]`; the stream delivered **32 items**, so `delivery_proven` is true (none was a watchlist symbol, which the REST cross-check agrees with: 6 × `no_positive_case`, 0 missed). Startup REST: 5 items, 5 on the watchlist.
+- EDGAR: every cycle ok, `pre_filter_entries` 40 in all 23 (min = max = 40), `max_requests_in_any_1s` 1, no errors, no `task_failures`.
+
+### The cause of everything odd: the PC went into Modern Standby at 12:41
+
+Windows System log (Kernel-Power), read by the agent:
+
+| Local time (ET) | Event |
+|---|---|
+| 12:41:26 | 506 "entering Modern Standby", reason **Idle Timeout** |
+| 12:43:17 | 172 "Connectivity state in standby: Disconnected", reason Adaptive Connected Standby |
+| 14:00:01 | 507 "exiting Modern Standby" (battery-drain budget), then 14:00:02 exit on mouse input |
+
+This PC only supports `Standby (S0 Low Power Idle)` (`powercfg /a`), where turning the display off *is* standby. `Turn off display after` is 1200 s (20 min) on both AC and battery, and the PC was on battery (`Win32_Battery` status 1, 59 %). The run started at 12:21, so with no input the screen went off 20 minutes later and Windows suspended the process. The network dropped at 12:43:17; the last quote arrived at 12:43:12. When the PC woke at 14:00, Python's monotonic clock (`GetTickCount64()`, which keeps counting through standby) showed the 35-minute timer long expired, so the run processed what was buffered and shut down.
+
+### (1) EDGAR: 23 cycles, not ~35
+
+- 22 cycles ran live, 12:21:04 to 12:42:24 ET, at a mean spacing of **60.97 s** (60 s poll + request time). The 23rd ran at 14:00:04, right after wake-up. None ran during the 77-minute standby.
+- With that spacing, an uninterrupted 35-minute run gives 1 + ⌊2100 / 60.97⌋ = **35 cycles**, so the "≈ 35" pass rule is right; this run was simply live for 22 minutes.
+- `mean_rps` 0.0037 is (23 − 1) requests / 5,940 s (first to last request, standby included). A normal run gives about 1/61 ≈ **0.016**. It is still ≤ 1, but here it only measures the gap.
+- Not a code bug: the poller was frozen with the rest of the process and resumed cleanly.
+
+### (2) The simultaneous stale event on every symbol
+
+The seven `iex.staleness` records (seq 2378915–2378925) are all stamped 19:00:04.50–.51Z (14:00:04 ET), the first moment the process ran again:
+
+| Symbol | State | `gap_s` |
+|---|---|---|
+| SPY, QQQ, IWM | stale | 4,612.563 |
+| AAPL | stale | 4,612.641 |
+| MSFT | stale | 4,612.782 |
+| QQQ, AAPL | fresh | 4,612.563 / 4,612.641 |
+
+4,612.56 s = 14:00:04.50 − 12:43:11.94 ET, the last quote before standby. On wake-up the first staleness check saw every symbol 77 minutes silent and flagged all five at once (one event each, the `stale_events: 1` per symbol). Then 8 quotes still sitting in the socket buffer were read (exchange times 12:43:12 ET), which made QQQ and AAPL fresh again, and the IEX socket reported `StreamClosedError` (the server had dropped it during standby). The stale detector worked as designed: one host-wide silence, not a feed problem.
+
+**Bug found and fixed.** The summary's `max_gap_s` said SPY 0.5 s, IWM 0.407 s and MSFT 3.516 s although all three were silent for 4,612 s. The tracker only recorded a gap when the next quote closed it; symbols that never recovered kept their last short gap, so the summary contradicted the log (P-02, "silent equals fine"). The summary now uses `StalenessTracker.max_gaps(now)`, which includes the gap still open at the end and counts never-seen symbols from the start (`src/family_desk_spike/core/staleness.py`, `src/family_desk_spike/data/iex_stream.py`). Tests: `test_max_gaps_counts_a_gap_still_open` and a new assertion in `test_silent_stall_marks_every_symbol_stale_then_fresh`. Both fail on the previous code (`AttributeError` and a `max_gap_s` holding only AAPL) and pass now.
+
+Side effects of the standby in this run's numbers: `updates_per_min` is divided by the 99-minute run length, not the 22.1 live minutes (live rates are roughly SPY 10,990, QQQ 8,420, IWM 14,620, AAPL 2,180, MSFT 1,900 per minute), and the 8 buffered quotes carry a +77-minute skew (too few to move the medians).
+
+### (3) The clock offset hasn't corrected
+
+Skew medians in this run were −474.7 to −478.1 ms (p95 −376 to −397 ms), against about −510 ms in run 1. `w32tm /stripchart /computer:time.cloudflare.com` at 14:25 ET: **+0.353 to +0.356 s** (5 samples). So the PC is still slow; the offset is shrinking slowly (≈ 0.51 s at 12:16, ≈ 0.48 s during the run, 0.35 s at 14:25).
+
+Why, from `w32tm /query /status /verbose`, `/query /peers`, the W32Time registry and the event log (all read without admin):
+
+1. **The 12:15 sync didn't step the clock.** The Kernel-General "system time has changed" event at 12:14:59 shows `Time Delta: 0 ms`. On a standalone PC `MaxAllowedPhaseOffset` is **1** s: an offset below that is removed by slowly changing the clock rate (slewing), not by setting the time. 0.51 s < 1 s.
+2. **The slew is slow.** `UpdateInterval` is **360000** (the standalone default) with `PhaseCorrectRate` 1, so the rate is adjusted rarely and the correction takes hours (about 0.16 s in 2 h 10 min here).
+3. **It won't poll again for hours.** The peer is `time.cloudflare.com,0x9`. Flag `0x1` means "use `SpecialPollInterval`", which is **32768 s** (9.1 h); `/query /peers` shows `Time Remaining: 24943.97 s` (6.9 h). With one sample the service never settles: status shows `Leap Indicator: 3 (not synchronized)` and `Last Sync Error: … no time data was available` (the standby also cut the network).
+4. The earlier hand-off command `w32tm /resync /force` is wrong: `/resync` has no `/force` switch (`/rediscover`, `/nowait`, `/soft` exist).
+
+Fix (owner, **admin** PowerShell: right-click PowerShell → Run as administrator). It polls two servers every 64 s in client mode (flag `0x8` uses `Min/MaxPollInterval`, in powers of 2 seconds, instead of the 9-hour special interval) and applies corrections far more often (`UpdateInterval` 100, the value Windows uses on domain controllers):
+
+```powershell
+w32tm /config /manualpeerlist:"time.cloudflare.com,0x8 time.windows.com,0x8" /syncfromflags:manual /update
+$c = 'HKLM:\SYSTEM\CurrentControlSet\Services\W32Time\Config'
+Set-ItemProperty -Path $c -Name MinPollInterval      -Value 6   -Type DWord   # 2^6 = 64 s
+Set-ItemProperty -Path $c -Name MaxPollInterval      -Value 6   -Type DWord
+Set-ItemProperty -Path $c -Name UpdateInterval       -Value 100 -Type DWord
+Set-ItemProperty -Path $c -Name FrequencyCorrectRate -Value 2   -Type DWord
+Restart-Service w32time
+w32tm /resync /rediscover
+w32tm /query /status          # expect Leap Indicator 0, Source time.cloudflare.com,0x8
+```
+
+Check 15 minutes later, no admin needed:
+
+```powershell
+w32tm /stripchart /computer:time.cloudflare.com /samples:5 /dataonly   # want every offset within ±0.050 s
+```
+
+If the offset is still above 0.05 s, step it once by hand (admin). The stripchart sign is the amount to add, so for `+00.3540000s`:
+
+```powershell
+Set-Date -Adjust ([TimeSpan]::FromSeconds(0.354))
+```
+
+then run the stripchart again. To undo the poll settings later: `MinPollInterval` 10, `MaxPollInterval` 15, `UpdateInterval` 360000, `FrequencyCorrectRate` 4 (today's values), then `Restart-Service w32time`.
+
+### Before run 2: keep the PC awake
+
+The screen-off timeout will suspend run 2 the same way. Plug the PC in, and before starting (no admin needed):
+
+```powershell
+powercfg /change monitor-timeout-ac 0      # never turn the display off on AC
+powercfg /change standby-timeout-ac 0      # already 0 on AC today
+```
+
+Afterwards restore the display timeout with `powercfg /change monitor-timeout-ac 20` (today's value). The spike itself doesn't detect a host suspend; candidate failure pattern **P-28** (below and in `failure_library_proposals.md`).
+
+### New failure proposal
+
+- **P-28** Host suspend freezes the process; timers count the suspended time and every stream looks stale at once.
+
 ## Rerun (owner, B10 run 2)
 
-Valid windows: Fri 27 Nov is a half-day (close 13:00 ET), so start between 10:00 and 11:55 ET. From Mon 30 Nov, start between 10:00 and 14:55 ET. Sync the PC clock first (hand-off), then:
+Valid windows: Fri 27 Nov is a half-day (close 13:00 ET), so start between 10:00 and 11:55 ET. From Mon 30 Nov, start between 10:00 and 14:55 ET. Fix the clock and keep the PC awake first (dry-run section above), then:
 
 ```powershell
 git status --porcelain -- src config      # must print nothing

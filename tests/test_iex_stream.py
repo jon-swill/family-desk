@@ -117,6 +117,11 @@ def test_silent_stall_marks_every_symbol_stale_then_fresh(tmp_path: Path) -> Non
     assert {s for s, st in states if st == "stale"} == set(WATCH)
     assert ("AAPL", "fresh") in states
     assert monitor.tracker.stale == set(WATCH) - {"AAPL"}
+    # Symbols that stayed silent report the open gap, not 0 or a stale closed gap.
+    gaps = monitor.summary()["max_gap_s"]
+    assert isinstance(gaps, dict)
+    assert set(gaps) == set(WATCH)
+    assert all(g >= 61 for g in gaps.values())
 
 
 def test_disconnect_then_reconnect_with_backoff(tmp_path: Path) -> None:

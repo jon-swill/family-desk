@@ -20,6 +20,25 @@ def test_stale_reported_once_then_fresh() -> None:
     assert t.stale_events == {"B": 1, "A": 1}
 
 
+def test_max_gaps_counts_a_gap_still_open() -> None:
+    # Dry run 2026-11-25: the PC slept 4,612 s; SPY never updated again before the
+    # stream closed, so the summary showed its last closed gap (0.5 s).
+    t = StalenessTracker(stale_after=60, started_at=0, keys=("SPY", "QQQ", "MSFT"))
+    for now in (1.0, 1.5):
+        t.observe("SPY", now)
+        t.observe("QQQ", now)
+    t.observe("XYZ", 1.0)  # unexpected symbol keeps its entry
+    assert t.max_gap["SPY"] == 1.0
+    t.check(4613.5)
+    t.observe("QQQ", 4614.0)  # recovers; SPY doesn't
+    gaps = t.max_gaps(4616.0)
+    assert gaps["SPY"] == 4614.5
+    assert gaps["QQQ"] == 4612.5
+    assert gaps["MSFT"] == 4616.0  # never seen: counts from the start
+    assert gaps["XYZ"] == 4615.0
+    assert t.max_gaps(2.0)["SPY"] == 1.0  # a closed gap larger than the open one wins
+
+
 def test_series_stats_summary() -> None:
     s = SeriesStats()
     for i in range(10):

@@ -47,6 +47,18 @@ class StalenessTracker:
                 out.append((key, "stale", gap))
         return out
 
+    def max_gaps(self, now: float) -> dict[str, float]:
+        """Largest gap per key, counting the gap still open at `now`. `max_gap` alone
+        only holds gaps that closed with an update, so a key that went silent and never
+        recovered kept its last short gap: in the 2026-11-25 dry run SPY reported a
+        0.5 s max gap after 4,612 s of silence (P-02). A key never seen counts from
+        `started_at`."""
+        keys = dict.fromkeys((*self.keys, *self.max_gap))
+        return {
+            k: max(self.max_gap.get(k, 0.0), now - self.last_seen.get(k, self.started_at))
+            for k in keys
+        }
+
 
 def _pct(values: list[float], q: float) -> float | None:
     if not values:

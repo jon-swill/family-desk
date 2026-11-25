@@ -72,11 +72,12 @@ class QuoteMonitor:
         )
 
     def summary(self) -> dict[str, object]:
-        duration = self.clock.monotonic() - self.started_mono
+        now = self.clock.monotonic()
+        duration = now - self.started_mono
         return {
             "per_symbol": summarize(self.stats, self.symbols, duration),
             "stale_events": dict(self.tracker.stale_events),
-            "max_gap_s": {k: round(v, 3) for k, v in self.tracker.max_gap.items()},
+            "max_gap_s": {k: round(v, 3) for k, v in self.tracker.max_gaps(now).items()},
             "unexpected_symbols": self.unexpected_symbols,
         }
 
