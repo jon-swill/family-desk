@@ -1,6 +1,6 @@
 # Master brief (Prompt 0)
 
-Paste at the top of any new chat; Claude Code reads it through AGENTS.md. Updated 2026-11-24.
+Paste at the top of any new chat; Claude Code reads it through AGENTS.md. Updated 2026-11-25.
 
 ```text
 PROJECT: Family Trading Desk (owner: Jonathan Swill). Repo docs: docs/PRD.md, docs/RETRO.md, docs/COMPLIANCE.md, docs/research/.
@@ -26,7 +26,8 @@ NON-NEGOTIABLE PRINCIPLES
 OWNER DECISIONS
 - Paper on Alpaca; live broker stays fluid (I also hold Schwab and Robinhood).
 - No X/Grok, no paid news: free/official sources only.
-- Options: manual only, later; all automated paths reject options.
+- Options: equities and options are both wanted eventually. All automated paths reject options; a manual, defined-risk paper-options learning track runs now; options automation is a future gated phase (PRD Phase 8).
+- Paper-test values ($X = $250, ~$35k paper desk, $5k sleeve, sleeve loss limits, $0-25/month budget, report cadence): docs/phases/phase_0/decisions.md. Revisited at the live gate; never tuned to chase the $1M goal.
 - Follow all laws and provider terms (docs/COMPLIANCE.md). Household money only.
 
 WORKING RULES FOR YOU (CLAUDE)

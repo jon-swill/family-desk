@@ -33,7 +33,7 @@ B1, B2, B3, B4, B5, B6, B7, B9, B12, A1, A2, A3, A4, A5, A6, A7. B8 is done exce
 
 5. **O6: failure proposals.** Approve or reject P-07 to P-18 in `docs/research/failure_library_proposals.md`, from A4. A9 then merges the approved ones.
 
-6. **O3** (Phase 0 decisions table) stays debt until before the Phase 2 plan.
+6. **O3** (Phase 0 decisions table): done 2026-11-25. Paper-test values are in `docs/phases/phase_0/decisions.md`. Its §5 lists the points the agent flagged for the owner. Do not make a new $35k Alpaca paper account until B10 has passed (see §4 of that file).
 
 ## Decisions the agents raised (owner's call)
 - **A5 matrix method:** (a) the data table is split into price feeds and company-event sources, ranked separately; (b) a knock-out (KO) rule was added: a 0 on a KO criterion excludes the candidate; (c) G-1's HOLD rule is read as applying to the engine recommendation only, while a broker or data rank flip is published as "not robust". Confirm or override.
