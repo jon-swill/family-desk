@@ -1,6 +1,6 @@
 # Failure library
 
-Learn from everyone who failed before us. Each entry: what happened, the root cause, and the control it becomes in this system (rule IDs R-13 onward extend the master brief's rules 1–12). Entries marked **[verify]** come from general knowledge and must be re-checked against primary sources in Phase 1. Add a row every time we find a new failure, ours or anyone's.
+Learn from everyone who failed before us. Each entry: what happened, the root cause, and the control it becomes in this system (rule IDs R-13 onward extend the master brief's rules 1–12). Entries first written from general knowledge (F-05, F-06, F-10, F-11, F-12, F-15, F-17) were re-checked against primary sources in Phase 1; each check is recorded in `verification_log.md`. Add a row every time we find a new failure, ours or anyone's.
 
 ## A. Engineering and operations failures
 
@@ -96,4 +96,4 @@ Learn from everyone who failed before us. Each entry: what happened, the root ca
 ## Open questions for Phase 1
 - Find post-mortems of retail algo traders (blogs, r/algotrading) and add the top recurring causes.
 - Find documented incidents at Alpaca, Schwab and Robinhood APIs (outages, order bugs) and add them.
-- Verify every [verify] entry against a primary source.
+- Verify every entry written from general knowledge against a primary source (done in Phase 1 for F-05, F-06, F-10, F-11, F-12, F-15, F-17; see `verification_log.md`).
