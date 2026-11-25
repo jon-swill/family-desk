@@ -51,25 +51,29 @@ Parameters not set by the owner yet are not filled in here. The main remaining e
 - **Hypothesis under test (owner's idea):** buying dips and selling only above cost basis gives a high win rate. The question is whether it beats a stop-based version and plain index buy-and-hold after costs and taxes, once capital stuck underwater is counted.
 - **Arms:**
   - **A:** buy dips, sell only above cost, no stop.
-  - **B:** the same entries as A, with a stop or a 10-day time stop.
-  - **C:** buy-and-hold the index.
+  - **B:** the same entries as A, with a stop and a 10-day time stop (whichever comes first).
+  - **C:** buy-and-hold SPY.
 - **Universes, reported separately:**
-  1. Liquid index ETFs.
-  2. A small basket of single stocks.
+  1. Liquid index ETFs (SPY, QQQ, IWM).
+  2. A small basket of single stocks (5 names).
 - **Metrics:** win rate; average win vs average loss; capital stuck underwater (dollar-days and longest stretch below cost); results after all costs and estimated taxes vs C. Estimated taxes use published federal and NJ rules and are labelled "not CPA-reviewed" (PRD Phase 2).
 - **Benchmark:** arm C.
 - **Kill criterion:** an arm that does not beat C after costs and estimated taxes is not adopted as a strategy (invariant 7).
 - **Frozen parameters (owner, 2026-11-25, paper-test values; R-17 pre-registration):**
-  - **Dip (entry):** a close at least **5%** below the 20-day high for ETFs, at least **8%** for single stocks.
-  - **Profit target (arms A and B):** sell at **+2% over cost basis**.
-  - **Arm B exit:** a stop at **2 × ATR(14)**, or a **10-day time stop**.
+  - **Universes:** ETFs **SPY, QQQ, IWM**; stocks **AAPL, MSFT** plus 3 chosen by the rule below.
+  - **Arm C (benchmark for both universes):** buy-and-hold **SPY**.
+  - **Dip (entry):** a daily close at least **5%** below the **highest close** of the last **20 trading days** (ETFs), at least **8%** (stocks).
+  - **Profit target (arms A and B):** **+2% over cost basis, after trading costs** (commissions, fees and modeled slippage on both legs). Taxes are applied separately in the results.
+  - **Arm B exit:** whichever comes first of the +2% target, a **stop at entry price − 2 × ATR(14)**, with ATR(14) taken **as of the entry day**, and a **10-trading-day time stop**.
   - **Backtest window:** **2010 to 2024.** **Holdout: 2025 onward, untouched** until the pre-registered final test (R-18).
   - **Taxes:** gains taxed as short-term at **24% federal + 6.37% NJ** (30.37% combined). This is an assumption; the owner's own bracket replaces it later. Labelled "not CPA-reviewed".
-  - **Stock basket:** **AAPL, MSFT** and **3 more liquid large caps**, chosen and frozen in writing **before any data is viewed**.
-- **Still open before the backtest runs** (agent proposes, owner approves; frozen in writing before Phase 4):
-  - the 3 extra stock names (rule above);
-  - the ETF list and the index used for arm C (neither is named yet);
-  - exact definitions the values above leave open: whether the 20-day high is the highest close or the highest intraday high; whether +2% is before or after costs; whether arm B exits at whichever of the stop and the time stop comes first, and whether the stop is set from the entry price with ATR(14) as of entry; whether 10 days means trading days.
+  - **Stock selection rule for the 3 extra names:** the **three largest US companies by market capitalization on 2010-01-01**, in **distinct sectors**, **excluding AAPL and MSFT**, chosen by that rule from a **cited source before any price data is viewed**.
+- **Applying the stock rule (agent, 2026-11-25): two names fixed, the third waits on the owner.** Only market-cap rankings were read; no price series, chart or return was opened. Sources (details in `verification_log.md` §9):
+  - **FT Global 500, as of 31 Dec 2009** (Wikipedia's transcription of the FT table, 2009 section, fourth quarter; the FT PDF itself could not be opened): the US companies in the global top 10 are ExxonMobil $323.7bn, Microsoft $270.6bn, Walmart $203.7bn and Apple $189.8bn. US companies below the global top 10 are not listed.
+  - **FinHacker, "Largest 20 S&P 500 Companies by Market Cap", 2009 list** (secondary; the snapshot date is not stated, and the table was read through a page summary, not verbatim): ExxonMobil $322.33B, Microsoft $268.56B, Walmart $203.64B, Alphabet $197.03B, Apple $191.01B, Johnson & Johnson $177.71B, Procter & Gamble $176.13B, JPMorgan Chase $164.26B, IBM $163.17B, Chevron $154.60B. Its first three match the FT year-end values within 0.5%, which suggests a year-end 2009 snapshot (inference).
+  - **Fixed:** **ExxonMobil (XOM)** and **Walmart (WMT)**, ranks 1 and 2 after excluding AAPL and MSFT in both sources, in different sectors (energy; consumer retail and staples).
+  - **Third name, owner's call:** next by size is **Alphabet (then Google, GOOG)**, $197.03B, which is usually classed with Apple and Microsoft as technology (from memory, not cited). If "distinct sectors" means distinct among the three, it is Alphabet. If it also means distinct from AAPL and MSFT, it is **Johnson & Johnson (JNJ)**, $177.71B, health care. Neither source gives a sector, so the sector labels still need a cited classification, and the third rank rests on one secondary source. Also: Google's 2014 share split (GOOG / GOOGL) matters for a continuous 2010–2024 price series.
+- **Known bias, stated in advance:** AAPL and MSFT were picked with hindsight (they are the watchlist names and two of the largest winners of the period), so the stock universe is not a fair sample. The size rule for the other three limits the bias; it does not remove it. Results are reported with this caveat.
 - **Execution (owner, 2026-11-25):** all three arms are simulated on paper market data and forward-logged, with no broker orders. Arm A therefore never sits in the sleeve without a stop (D-13), and the arms stay comparable.
 - **Schedule:** a point-in-time backtest in Phase 4, then a forward simulated run alongside Phase 5 paper trading.
 

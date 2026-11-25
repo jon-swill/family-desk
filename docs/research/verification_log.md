@@ -194,3 +194,14 @@ The owner's O6 decision 2 (2026-11-25) asked whether Alpaca GTC stops can trigge
 | 8.2 | Stop election and trailing stops | "Stop orders and trailing stops are elected on the consolidated print" (no session named); "Trailing stop will not trigger outside of the regular market hours"; "Once the order is elected, the stop order becomes a market order" | https://docs.alpaca.markets/us/docs/orders-at-alpaca (updated 2026-11-24) | 2026-11-25 | **unverifiable**: whether a GTC stop or stop-limit with `extended_hours` false elects outside the regular session is not stated | R-49 assumes it can; open question added to FAILURE_LIBRARY |
 | 8.3 | Overnight (24/5) order types | "Only `limit` orders are supported during the overnight session"; GTC orders "remain active across trading sessions"; page is for Broker API accounts; stops not mentioned | https://docs.alpaca.markets/docs/245-trading (updated 2026-11-24) | 2026-11-25 | verified (scope: Broker API) | R-49 cites it |
 | 8.4 | `extended_hours` parameter | "If true, order will be eligible for execution in the pre-market, after-hours, and overnight sessions"; "Only works with type `limit` and time_in_force set to either `day` or `gtc`" | https://docs.alpaca.markets/us/reference/postorder (updated 2026-05-27) | 2026-11-25 | verified | none |
+
+## 9. E-1 stock selection rule: largest US companies on 2010-01-01 (owner rule, 2026-11-25)
+
+Market-cap rankings only. No price series, chart or return data was opened. Cited in `docs/phases/phase_0/decisions.md` §2.
+
+| # | Term | Verified value | Primary source URL | Accessed | Verdict | Change made |
+|---|---|---|---|---|---|---|
+| 9.1 | FT Global 500 as of 31 Dec 2009 (via Wikipedia) | "This *Financial Times*–based list is up to date as of 31 December 2009"; fourth-quarter top 10 includes, for the US, ExxonMobil 323.717, Microsoft 270.635, Walmart 203.654, Apple 189.802 (USD bn); no sector column | https://en.wikipedia.org/w/index.php?title=List_of_public_corporations_by_market_capitalization&action=raw&section=20 (cites the FT PDF http://media.ft.com/cms/419e021c-fecd-11de-91d7-00144feab49a.pdf) | 2026-11-25 | secondary (transcription of the FT); the archived FT PDF could not be fetched | ExxonMobil and Walmart fixed |
+| 9.2 | Largest 20 S&P 500 companies, 2009 | ExxonMobil 322.33B, Microsoft 268.56B, Walmart 203.64B, Alphabet 197.03B, Apple 191.01B, Johnson & Johnson 177.71B, Procter & Gamble 176.13B, JPMorgan Chase 164.26B, IBM 163.17B, Chevron 154.60B; snapshot date and sectors not stated | https://www.finhacker.cz/en/top-20-sp-500-companies-by-market-cap/ | 2026-11-25 | **secondary only**, read through a page summary (not verbatim) | third name left to the owner |
+| 9.3 | Sector classification, 2010 | Not found in either source | none | 2026-11-25 | unverifiable | owner's call recorded |
+

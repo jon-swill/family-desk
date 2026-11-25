@@ -26,7 +26,7 @@ B1–B9, B12, A1–A8, A10, A11, G1. B11 run-1 evidence is written (`spike_evide
 
 ## Decisions the agents raised (owner's call)
 - ~~**News stream `"*"`**~~ **Decided by the owner and done 2026-11-25 (`6fe8044`).**
-- **A10:** ~~do you hold a live Alpaca account?~~ **Answered 2026-11-25: paper-only** (RETRO), so the IEX-only rule applies; the agent can re-score the delayed-SIP DP-1 and SIP DP-9 cells. Still open: where R-27's indicative values should come from (no documented free source), and whether polling Apple's newsroom RSS is acceptable under Apple's site terms.
+- **A10:** ~~do you hold a live Alpaca account?~~ **Answered 2026-11-25: paper-only** (RETRO); price-feed cells re-scored (`decision_matrix.md` 9.6). Still open: where R-27's indicative values should come from (no documented free source), and whether polling Apple's newsroom RSS is acceptable under Apple's site terms.
 - **Earlier, still open:** the A5 matrix method choices, and the A3/A6/A7 notes in the previous hand-off (git history of this file, commit `839fca9`).
 
 ## Next agent tasks once the above is done
