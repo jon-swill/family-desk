@@ -44,10 +44,10 @@ Fit key: **Core** = can sit in the long-term bucket · **Sleeve** = active sleev
 
 | Strategy | Typical rules | Why it might work | Evidence and decay | Main failure mode | Fit |
 |---|---|---|---|---|---|
-| Range breakout (N-day high) | Buy close above recent range high with volume | New information, trend start | Mixed; most breakouts fail | False breakouts | Sleeve (with filters) |
-| Opening range breakout | Trade break of first 15–30 min range | Intraday momentum | Some practitioner evidence; sensitive to costs | Chop; slippage | Watch (day trading, R-36) |
-| Volatility contraction (squeeze) | Enter when Bollinger width / ATR hits multi-month low and then expands | Calm before moves | Practitioner | Direction ambiguity | Watch |
-| Cup-and-handle / chart patterns | Pattern recognition | Behavioral | Weak, subjective evidence | Pattern ambiguity, overfitting | No (unless rules are fully mechanical) |
+| Range breakout (N-day high) | Buy close above recent range high with volume | New information, trend start | [Brock, Lakonishok & LeBaron (1992)](https://doi.org/10.1111/j.1540-6261.1992.tb04681.x) found trading-range-break buy signals beat sell signals on the Dow 1897–1986, but [Sullivan, Timmermann & White (1999)](https://doi.org/10.1111/0022-1082.00163) found no rule from that universe significant out-of-sample in 1987–1996. "Most breakouts fail" unverified | False breakouts | Sleeve (with filters) |
+| Opening range breakout | Trade break of first 15–30 min range | Intraday momentum | [Zarattini & Aziz (2023)](https://doi.org/10.2139/ssrn.4416622) (practitioner SSRN paper, not peer reviewed): an ORB strategy on QQQ 2016–2023 reported large alpha net of commissions, with headline results relying on leverage or 3x leveraged ETFs (blocked instruments here). A [2025 replication](https://doi.org/10.2139/ssrn.5325376) exists but its abstract was not reachable; cost sensitivity unverified | Chop; slippage | Watch (day trading, R-36) |
+| Volatility contraction (squeeze) | Enter when Bollinger width / ATR hits multi-month low and then expands | Calm before moves | unverified (practitioner; Bollinger's own book is the originator, not online; no peer-reviewed test found) | Direction ambiguity | Watch |
+| Cup-and-handle / chart patterns | Pattern recognition | Behavioral | [Lo, Mamaysky & Wang (2000)](https://doi.org/10.1111/0022-1082.00265): automated kernel-regression detection of patterns (head-and-shoulders, double bottoms, etc.) on US stocks 1962–1996 found "several technical indicators do provide incremental information and may have some practical value"; trading profits after costs were not shown in the abstract, and cup-and-handle was not among the patterns tested in the abstract | Pattern ambiguity, overfitting | No (unless rules are fully mechanical) |
 
 ## 5. Volatility, risk-based and allocation systems
 
