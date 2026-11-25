@@ -22,14 +22,25 @@ class _Model(BaseModel):
 
 
 class Account(_Model):
+    """GET /v2/account. Alpaca's schema marks only `id` and `status` required
+    (https://docs.alpaca.markets/reference/getaccount-1, read 2026-11-25).
+
+    Required here: the fields the runner reads to judge the account, so a missing one
+    fails closed. Optional: fields no code path depends on. Types are still validated
+    when a field is present. Absent or unknown fields become a schema-drift event
+    (`parse.alpaca_rest.SchemaDrift`), never a silent default.
+    """
+
     status: str
     currency: str
-    equity: Decimal
-    cash: Decimal
-    buying_power: Decimal
     trading_blocked: bool
     account_blocked: bool
-    pattern_day_trader: bool
+    equity: Decimal | None = None
+    cash: Decimal | None = None
+    buying_power: Decimal | None = None
+    # Not in Alpaca's current Account schema; PDT is being retired (FINRA intraday margin
+    # rule). Kept optional so the log still shows it if an older payload carries it.
+    pattern_day_trader: bool | None = None
 
 
 class Position(_Model):

@@ -7,7 +7,12 @@ from dataclasses import dataclass
 from family_desk_spike.config import Settings
 from family_desk_spike.models import Account, MarketClock, Position
 from family_desk_spike.net.readonly_http import HttpResponse, ReadOnlyHttp
-from family_desk_spike.parse.alpaca_rest import parse_account, parse_clock, parse_positions
+from family_desk_spike.parse.alpaca_rest import (
+    SchemaDrift,
+    parse_account,
+    parse_clock,
+    parse_positions,
+)
 
 
 class ApiError(RuntimeError):
@@ -47,7 +52,7 @@ class AlpacaReadOnly:
         resp = await self.http.get(url, headers=alpaca_headers(self.settings))
         return ensure_ok(resp, path)
 
-    async def get_account(self) -> Account:
+    async def get_account(self) -> tuple[Account, SchemaDrift]:
         return parse_account(await self._get("/v2/account"))
 
     async def get_positions(self) -> list[Position]:

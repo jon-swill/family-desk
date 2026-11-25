@@ -35,6 +35,7 @@ from family_desk_spike.data.news_rest import fetch_recent_news, watchlist_matche
 from family_desk_spike.data.news_stream import NewsMonitor, build_news_session, news_payload
 from family_desk_spike.data.stream_client import Connector, StreamCounters
 from family_desk_spike.net.readonly_http import GetTransport, ReadOnlyHttp
+from family_desk_spike.parse.alpaca_rest import ParseError, SchemaDriftError
 from family_desk_spike.startup import GitReader, run_startup
 
 EXIT_OK = 0
@@ -218,7 +219,25 @@ async def run(
             return state.exit_code
         log.append("run_window", {"refused": []})
 
-        account = await broker.get_account()
+        try:
+            account, drift = await broker.get_account()
+        except SchemaDriftError as exc:
+            log.append("schema_drift", exc.drift.payload())
+            log.append("error", {"stage": "account", "detail": str(exc)[:200]})
+            state.say(f"refused: /v2/account schema drift ({exc})")
+            state.exit_code = EXIT_ERROR
+            return state.exit_code
+        except (ApiError, OSError, ParseError) as exc:
+            log.append("error", {"stage": "account", "detail": str(exc)[:200]})
+            state.say(f"refused: could not read /v2/account ({exc})")
+            state.exit_code = EXIT_ERROR
+            return state.exit_code
+        if not drift.empty:
+            log.append("schema_drift", drift.payload())
+            state.say(
+                f"schema drift on /v2/account: missing={list(drift.missing_optional)} "
+                f"unknown={list(drift.unknown)} unknown_invalid={drift.unknown_invalid_names}"
+            )
         log.append(
             "account",
             {

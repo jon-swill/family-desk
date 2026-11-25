@@ -38,7 +38,7 @@ def test_account_positions_clock_parsed() -> None:
         .add_json(f"{PAPER}/v2/clock", (FIX / "alpaca_clock_open.json").read_bytes())
     )
     b = _broker(fake)
-    account = asyncio.run(b.get_account())
+    account, _drift = asyncio.run(b.get_account())
     positions = asyncio.run(b.get_positions())
     clock = asyncio.run(b.get_clock())
     assert account.status == "ACTIVE" and account.cash == Decimal("100000")

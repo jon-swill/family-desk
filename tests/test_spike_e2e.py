@@ -14,6 +14,7 @@ import pytest
 from family_desk_spike.applog import verify_lines
 from family_desk_spike.data.stream_client import WebSocketLike
 from family_desk_spike.runner import (
+    EXIT_ERROR,
     EXIT_INTERRUPTED,
     EXIT_OK,
     EXIT_STARTUP_REFUSED,
@@ -103,11 +104,13 @@ def _fix(name: str) -> bytes:
     return (FIX / name).read_bytes()
 
 
-def _http(clock_fixture: str = "alpaca_clock_open.json") -> FakeHttp:
+def _http(
+    clock_fixture: str = "alpaca_clock_open.json", account_fixture: str = "alpaca_account.json"
+) -> FakeHttp:
     return (
         FakeHttp()
         .add_json(f"{PAPER}/v2/clock", (FIX / clock_fixture).read_bytes())
-        .add_json(f"{PAPER}/v2/account", (FIX / "alpaca_account.json").read_bytes())
+        .add_json(f"{PAPER}/v2/account", (FIX / account_fixture).read_bytes())
         .add_json(f"{PAPER}/v2/positions", (FIX / "alpaca_positions_spy.json").read_bytes())
         .add_json(f"{DATA}/v1beta1/news", (FIX / "alpaca_news_page.json").read_bytes())
         .add_json(f"{SEC}/files/company_tickers.json", _fix("company_tickers_subset.json"))
@@ -263,3 +266,46 @@ def test_closed_market_refuses_before_any_stream(tmp_path: Path) -> None:
     assert [c[0] for c in http.calls] == [f"{PAPER}/v2/clock"]
     assert "quote" not in _sources(recs) and verify_lines(text).ok
     assert any("market closed" in line for line in state.lines)
+
+
+def test_account_without_pattern_day_trader_logs_drift_and_runs(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Regression for the B10 crash (2026-11-25): the run continues and logs the drift."""
+    h = Harness(tmp_path, http=_http(account_fixture="alpaca_account_no_pdt.json"))
+    state, recs, text = h.run()
+    assert state.exit_code == EXIT_OK, state.lines
+    assert verify_lines(text).ok
+    src = _sources(recs)
+    assert src.index("schema_drift") < src.index("account") < src.index("positions")
+    drift = next(r for r in recs if r["source"] == "schema_drift")["payload"]
+    assert drift == {
+        "entity": "account",
+        "missing_required": [],
+        "missing_optional": ["pattern_day_trader"],
+        "unknown": [],
+        "unknown_invalid_names": 0,
+    }
+    account = next(r for r in recs if r["source"] == "account")["payload"]
+    assert account["pattern_day_trader"] is None  # type: ignore[index]
+    assert "PA0000000000" not in text
+    assert "schema drift on /v2/account" in capsys.readouterr().out
+
+
+def test_account_missing_required_field_refuses_cleanly(tmp_path: Path) -> None:
+    body = json.loads(_fix("alpaca_account_no_pdt.json"))
+    del body["trading_blocked"]
+    http = (
+        FakeHttp()
+        .add_json(f"{PAPER}/v2/clock", _fix("alpaca_clock_open.json"))
+        .add_json(f"{PAPER}/v2/account", json.dumps(body).encode())
+    )
+    state, recs, text = Harness(tmp_path, http=http).run()
+    assert state.exit_code == EXIT_ERROR
+    assert verify_lines(text).ok
+    src = _sources(recs)
+    assert "schema_drift" in src and "positions" not in src and src[-1] == "summary"
+    drift = next(r for r in recs if r["source"] == "schema_drift")["payload"]
+    assert drift["missing_required"] == ["trading_blocked"]  # type: ignore[index]
+    assert "PA0000000000" not in text
+    assert [c[0] for c in http.calls] == [f"{PAPER}/v2/clock", f"{PAPER}/v2/account"]

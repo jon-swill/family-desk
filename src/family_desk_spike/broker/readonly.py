@@ -5,10 +5,11 @@ from __future__ import annotations
 from typing import Protocol
 
 from family_desk_spike.models import Account, MarketClock, Position
+from family_desk_spike.parse.alpaca_rest import SchemaDrift
 
 
 class ReadOnlyBroker(Protocol):
-    async def get_account(self) -> Account: ...
+    async def get_account(self) -> tuple[Account, SchemaDrift]: ...
 
     async def get_positions(self) -> list[Position]: ...
 
