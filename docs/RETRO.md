@@ -33,6 +33,8 @@ Greenfield (2026-11-24). Planning done in claude.ai: "Family Trading Desk — Pr
 | 2026-11-25 | Experiment E-1 ("take small profits, never sell below cost basis", arms A/B/C) is pre-registered as a paper experiment (D-20) | FR-31 |
 | 2026-11-25 | Owner answers to decisions.md §5: (1) all E-1 arms are simulated, with no broker orders; (2) covered calls on sleeve shares only; (3) options maximum loss $50 per trade, and a separate options paper account | FR-14, FR-31 |
 | 2026-11-25 | **Paper-test auto-trade cap raised from $250 to $1,000 per trade (D-01)**, effective 2026-11-26 after the 24-hour cooling-off for risk-up changes. Revisit at the live gate | FR-15; supersedes the $250 in the D-01 row above |
+| 2026-11-25 | **Engine choice moves to the Phase 2 install-check** (satisfies G-1's condition for the Phase 1 engine robustness flip). Scope: a packaged engine is used for backtests only; live and paper execution run in our own loop behind the deterministic kernel, so no engine order path (liquidation, close-all, market-order exits) is ever used. Installing an engine still needs the owner's explicit approval in Phase 2 | decision_matrix §9 (E-1 knock-out on NautilusTrader and LEAN at worst plausible); RETRO debt row "Engine install-check"; to be confirmed in the G3 sign-off row |
+| 2026-11-25 | Spike news stream subscribes to all news (`"*"`) and filters to the watchlist in code, so every item proves delivery (P-02). Off-watchlist items are counted, never stored | Commit `6fe8044` |
 
 ## Known debt
 

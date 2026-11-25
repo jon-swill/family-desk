@@ -115,7 +115,7 @@ The owner asked (2026-11-25) for the stream's 0 items to be treated as a suspect
 
 **Check added (commit `785c383`).** Every 5 minutes and once at shutdown, the runner compares REST watchlist items created since the stream started (up to now minus a 16-minute grace, to allow for the REST delay above) with the ids the stream delivered. It logs `news.cross_check` with a verdict: `ok`, `partial`, `stall` (REST has items, the stream delivered none) or `no_positive_case`. On `stall` or `partial` it also logs `news.stall` (ids only) and prints a `STALL:` line. The summary reports `news_stream.cross_check`. Limit: with a 16-minute grace, a 35-minute run only judges items created in its first ~19 minutes.
 
-**Owner option for run 2 (not done).** To give the stream a real positive case, subscribe with `"*"` (the documented example) and count unfiltered items as liveness, keeping only watchlist items' metadata. That is the same pattern as EDGAR's pre-filter count. It changes what the stream receives, so it is the owner's call.
+**Owner option for run 2: decided 2026-11-25 and done in `6fe8044`.** To give the stream a real positive case, subscribe with `"*"` (the documented example) and count unfiltered items as liveness, keeping only watchlist items' metadata. That is the same pattern as EDGAR's pre-filter count. It changes what the stream receives, so it is the owner's call.
 
 ## EDGAR: what failed and the fix
 
@@ -184,4 +184,4 @@ python -m family_desk_spike --duration-min 35
 python -m family_desk_spike.verify_log logs\spike\<YYYY-MM-DD>.jsonl
 ```
 
-Pass needs `edgar cycles` ≈ 35 with `pre_filter_min` > 0, `mean_rps` a number ≤ 1, `news_rest_watchlist` ≥ 1, and no `ERROR: source task` line. Paste both outputs to the agent, which adds a "Run 2" section here and updates the anchor.
+Pass needs `edgar cycles` ≈ 35 with `pre_filter_min` > 0, `mean_rps` a number ≤ 1, `news_rest_watchlist` ≥ 1, `news_stream.delivery_proven` true (the stream subscribes to `"*"` since `6fe8044`, owner decision), a news cross-check verdict, and no `ERROR: source task` or `STALL:` line. Paste both outputs to the agent, which adds a "Run 2" section here and updates the anchor.

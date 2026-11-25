@@ -351,3 +351,11 @@ New patterns found: **P-26** (fakes raise different errors from the real adapter
 2. **O6** (owner): approve or reject P-07..P-27; A9 then merges the approved ones.
 3. **G-1** (owner, at G3): either record that the engine choice moves to the Phase 2 install-check, or supply verified evidence for NautilusTrader's or LEAN's E-1 (kernel in front of every order path).
 4. **G2** red-team in a fresh session, with findings resolved; **G3** owner sign-off in RETRO.
+
+### 6. Owner decisions after the gate (2026-11-25)
+
+- **G-1:** the owner moved the engine choice to the Phase 2 install-check: a packaged engine for backtests only, with our own execution loop behind the kernel (RETRO 2026-11-25). This meets G-1's stated condition for a robustness flip. It is to be confirmed in the G3 sign-off row, and G-1 then stops blocking ADVANCE.
+- **News stream:** subscribes to `"*"` and filters in code (`6fe8044`), so run 2 can prove delivery.
+- **Clock:** the owner synced Windows Time at 12:15 ET. At 12:16 the agent still measured the clock about 0.51 s slow, so the offset was not yet corrected.
+
+The verdict stays **HOLD** on G-9 (run 2), G-4 (O6) and G-11 (G2, G3).
