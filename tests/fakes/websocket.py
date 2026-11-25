@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -51,6 +52,7 @@ class FakeWebSocket:
         self.sent.append(data)
 
     async def recv(self) -> str | bytes:
+        await asyncio.sleep(0)
         if not self.script:
             self.on_exhausted()
             raise TimeoutError

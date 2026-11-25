@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 
@@ -29,6 +30,7 @@ class FakeHttp:
         headers: Mapping[str, str],
         timeout_s: float,
     ) -> HttpResponse:
+        await asyncio.sleep(0)
         self.calls.append((url, dict(params), dict(headers)))
         queue = self.routes.get(url)
         if not queue:

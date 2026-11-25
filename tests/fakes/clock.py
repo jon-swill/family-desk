@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 
@@ -25,6 +26,7 @@ class FakeClock:
     async def sleep(self, seconds: float) -> None:
         self.sleeps.append(seconds)
         self.advance(max(0.0, seconds))
+        await asyncio.sleep(0)  # yield so concurrent tasks interleave
 
     def sleep_sync(self, seconds: float) -> None:
         self.sleeps.append(seconds)
