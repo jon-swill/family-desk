@@ -4,8 +4,8 @@
 *.pem
 secrets/
 private/
-logs/
-data/
+/logs/
+/data/
 __pycache__/
 .venv/
 *.pyc
