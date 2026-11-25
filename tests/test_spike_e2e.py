@@ -340,7 +340,7 @@ def test_dead_source_task_is_logged_when_it_dies(
     last_quote = max(i for i, s in enumerate(src) if s == "quote")
     assert errors[0] < last_quote  # logged while the streams were still running
     assert recs[-1]["payload"]["task_failures"] == {"edgar": "RuntimeError('boom')"}  # type: ignore[index]
-    assert "ERROR: source task 'edgar' died" in capsys.readouterr().out
+    assert "ERROR: source task 'edgar' ended" in capsys.readouterr().out
 
 
 def test_run_ends_with_a_final_news_cross_check(tmp_path: Path) -> None:
@@ -352,3 +352,17 @@ def test_run_ends_with_a_final_news_cross_check(tmp_path: Path) -> None:
     assert checks[-1]["verdict"] == "no_positive_case"  # type: ignore[index]
     summary = recs[-1]["payload"]["news_stream"]["cross_check"]  # type: ignore[index]
     assert summary["stalled"] is False
+
+
+def test_stream_that_stops_on_a_fatal_code_is_reported(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A 402 makes the IEX session return without raising; that is still a dead path."""
+    iex: list[Step] = [CONNECTED, frame({"T": "error", "code": 402, "msg": "auth failed"})]
+    h = Harness(tmp_path, iex=iex, stop_when_streams_done=False, timer_fires=True)
+    state, recs, text = h.run()
+    assert state.exit_code == EXIT_ERROR, state.lines
+    assert verify_lines(text).ok
+    errors = [r["payload"] for r in recs if r["source"] == "error"]
+    assert {"stage": "iex", "detail": "exited before stop"} in errors
+    assert "ERROR: source task 'iex' ended: exited before stop" in capsys.readouterr().out

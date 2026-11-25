@@ -338,7 +338,7 @@ async def run(
             asyncio.create_task(news_cross_check_loop(), name="news_cross_check"),
         ]
         for t in tasks:
-            t.add_done_callback(_report_task_death(state, log))
+            t.add_done_callback(_report_task_death(state, log, stop))
         timer = asyncio.create_task(_timer(stop, duration_min * 60, deps.timer_sleep), name="timer")
         try:
             await stop.wait()
@@ -357,22 +357,32 @@ async def run(
                 await deps.close_transport()
 
 
-def _report_task_death(state: RunState, log: AppLog) -> Callable[[asyncio.Task[Any]], None]:
-    """Log a source task's failure the moment it happens, never only at shutdown (P-02):
-    B10 run 1's EDGAR poller died on its first poll and nothing showed it for 35 minutes."""
+def _report_task_death(
+    state: RunState, log: AppLog, stop: asyncio.Event
+) -> Callable[[asyncio.Task[Any]], None]:
+    """Report a source task that ends for any reason other than a requested stop, the
+    moment it happens, never only at shutdown (P-02, P-24). B10 run 1's EDGAR poller
+    died on its first poll and nothing showed it for 35 minutes. A stream that returns
+    on a fatal code (e.g. 402 auth failed) without raising counts too."""
 
     def on_done(task: asyncio.Task[Any]) -> None:
         if task.cancelled():
             return
         failure = task.exception()
-        if failure is None or isinstance(failure, KeyboardInterrupt):
+        if isinstance(failure, KeyboardInterrupt):
             return
+        if failure is None:
+            if stop.is_set():
+                return  # normal end of the run
+            detail = "exited before stop"
+        else:
+            detail = repr(failure)[:200]
         name = task.get_name()
         failures: dict[str, str] = state.facts.setdefault("task_failures", {})
-        failures[name] = repr(failure)[:200]
+        failures[name] = detail
         with contextlib.suppress(RuntimeError):  # log already closed
-            log.append("error", {"stage": name, "detail": repr(failure)[:200]})
-        state.say(f"ERROR: source task '{name}' died: {failure!r}"[:300])
+            log.append("error", {"stage": name, "detail": detail})
+        state.say(f"ERROR: source task '{name}' ended: {detail}"[:300])
         state.exit_code = EXIT_ERROR
 
     return on_done
