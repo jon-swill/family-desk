@@ -40,7 +40,7 @@ src = ["src", "tests"]
 extend-exclude = [".claude"]
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "B", "UP", "S", "SIM", "RUF"]
+select = ["E", "F", "W", "I", "B", "UP", "S", "SIM", "RUF", "DTZ", "ASYNC"]
 ignore = ["S101"]
 
 [tool.ruff.lint.per-file-ignores]
