@@ -78,6 +78,7 @@ Fit key: **Core** = can sit in the long-term bucket · **Sleeve** = active sleev
 | Earnings-call / filing NLP signals | Score tone/changes in 8-K, 10-Q, calls | Information in text | Research literature: finance-specific word lists link 10-K tone to filing returns, volume and volatility ([Loughran & McDonald 2011](https://doi.org/10.1111/j.1540-6261.2010.01625.x), J. Finance); firms that change their 10-K/10-Q wording underperform, up to 188 bp/month long-short alpha, with no announcement effect ([Cohen, Malloy & Nguyen 2020, "Lazy Prices"](https://doi.org/10.1111/jofi.12885), J. Finance). LLMs now widespread: GPT-4 headline scores predict returns, more for small stocks and bad news, but strategy returns decline as LLM adoption grows ([Lopez-Lira & Tang 2023, rev. 2025](https://arxiv.org/abs/2304.07619)). Only forward tests count (F-09) | Look-ahead in tests; crowding | Sleeve, forward-test only (R-31) |
 | Index additions/deletions | Trade around index rebalances | Forced buying/selling | S&P 500 inclusion effect first documented by [Shleifer (1986)](https://doi.org/10.1111/j.1540-6261.1986.tb04518.x) (J. Finance). Mostly arbitraged away: the addition abnormal return fell from 7.4% in the 1990s to under 1% over the last decade, and deletions averaged 0.1% in 2010–2020 ([Greenwood & Sammon 2025](https://doi.org/10.1111/jofi.13410), J. Finance, online 2024; [NBER w30748](https://www.nber.org/papers/w30748), 2022) | Front-running is crowded | Watch |
 | Insider buying (Form 4) | Follow clusters of open-market insider buys | Insiders know more | Documented modest effect: little price movement when insiders trade; predictive power comes from purchases and is concentrated in smaller firms (1975–95, [Lakonishok & Lee 2001](https://doi.org/10.1093/rfs/14.1.79), RFS). Non-routine ("opportunistic") trades earn 82 bp/month value-weighted abnormal returns, routine trades about zero ([Cohen, Malloy & Pomorski 2012](https://www.nber.org/papers/w16454), J. Finance). Free data from EDGAR. Post-publication decay not separately measured; apply the McLean-Pontiff haircut (R-20) | Small, slow edge | Sleeve |
+| C-suite open-market insider buys ≥ $100K (owner proposal 2026-11-25, **proposed**) | From SEC Form 4: open-market purchases of $100K or more by C-suite officers; skip batch and pay-plan filings | Insiders know more; large discretionary buys by top officers may carry more information than routine or plan trades | unverified (owner proposal 2026-11-25; evidence to verify against primary sources before Phase 4 pre-registration) | To be stated at pre-registration | Sleeve (proposed) |
 | Buyback announcements | Buy on new authorizations | Signaling | Documented: 12.1% average abnormal four-year return after 1980–90 announcements, 45.3% for value stocks, none for glamour stocks ([Ikenberry, Lakonishok & Vermaelen 1995](https://www.nber.org/papers/w4965), J. Financial Economics). Decayed: long-run abnormal returns disappear for 2003–2012 events ([Fu & Huang 2016](https://doi.org/10.1287/mnsc.2015.2150), Management Science) | Announcements not executed | Watch |
 | Merger arbitrage | Buy target after announced deal | Deal-completion premium | Institutional; about 4% a year excess return after transaction costs over 4,750 deals (1963–98), with returns resembling short uncovered index puts and correlated with the market in severe declines, i.e. tail risk if deals break ([Mitchell & Pulvino 2001](https://doi.org/10.1111/0022-1082.00401), J. Finance) | Deal breaks | Watch |
 | 13F / "guru" following | Copy large funds' holdings | Skill transfer | 45-day lag is real: each 13F "is due within 45 days after the end of the calendar quarter" ([SEC Form 13F FAQ](https://www.sec.gov/divisions/investment/13ffaq)). That the lag erodes value is unverified (no 13F-specific peer-reviewed study read); related mutual-fund evidence cuts the other way: copycats of disclosed holdings performed comparably to their targets after costs ([Verbeek & Wang 2013](https://doi.org/10.1016/j.jbankfin.2013.04.024), J. Banking & Finance) | Stale data | Watch |
@@ -133,6 +134,18 @@ Fit key: **Core** = can sit in the long-term bucket · **Sleeve** = active sleev
 6. Capacity and turnover; after-tax result vs the core benchmark.
 7. Forward-logged paper results before any live money.
 
+## 13. Testing standards (owner proposal, 2026-11-25; status: proposed)
+
+Proposed by the owner; not yet adopted. They extend section 12 and apply to every candidate once adopted.
+
+1. **One-bar delay.** Shift every signal one bar later; the edge must survive.
+2. **Holdout audit.** An audit lists every touch of the held-out window; there must be none until the holdout is unlocked.
+3. **Walk-forward testing.**
+4. **Fee and slippage stress.** Raise fees and slippage until only survivors remain; survivors must still pass.
+5. **Multiple-testing correction** such as the deflated Sharpe ratio, because we test many strategies.
+6. **Survivorship count.** Report how many signals were unpriced or delisted.
+7. **Limit-fill realism.** Check each simulated fill a few seconds later for adverse selection.
+
 ## Suggested first candidates for Phase 4 (owner decides)
 
 1. Core: strategic allocation with band rebalancing + tax-loss harvesting.
@@ -140,3 +153,4 @@ Fit key: **Core** = can sit in the long-term bucket · **Sleeve** = active sleev
 3. Sleeve A: sector or asset-class rotation (monthly, ETF-based).
 4. Sleeve B: trend-pullback / RSI(2) reversion on index ETFs, uptrend only.
 5. Experimental: LLM-read earnings/filing signals, forward-logged only.
+6. Proposed (owner, 2026-11-25): C-suite open-market insider buys of $100K or more from SEC Form 4, skipping batch and pay-plan filings (section 7 row); evidence to verify.

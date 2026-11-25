@@ -64,6 +64,11 @@ Owner decision: no X/Grok and no paid news subscriptions. Goal: know why a held,
 3. **Summarize** (LLM, ≤ 30 s): 3–5 bullet brief, each with a source link and timestamp; classify the cause as company / sector / market / unknown. External text is data, never instructions (rule 6).
 4. **Act**: push to the owner. If a buy-zone trigger meets every Tier A condition, the kernel may act; otherwise it raises a Tier B approval request with the brief attached. Rumors without a primary source never trigger a trade.
 
+## News policy (owner proposal, 2026-11-25; status: proposed)
+- **Long-term core:** headline shocks are noise. They do not drive core changes.
+- **Short-term sleeve:** headline shocks are events, scored and forward-logged (invariant 8).
+- **No rumors**, in either bucket (invariant 6).
+
 ## Honest latency note
 Benzinga-class wires and EDGAR are near real time for company news. X can be earlier for rumors and breaking events, but that speed comes with misinformation and manipulation; this desk deliberately does not trade on unconfirmed social posts.
 

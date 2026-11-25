@@ -77,7 +77,7 @@ Household only. The system never manages money for anyone outside the household 
 - **FR-27 (proposed)** Modular, versioned interfaces for the data, strategy, kernel, broker and LLM layers, so each can be swapped without changing the others. Extends FR-3. Swapping the kernel stays under the owner-diff-review hard stop and trading invariant 2.
 - **FR-28 (proposed)** An UPGRADE risk mode that halts the short-term (active) sleeve, holds the core, and leaves protective stops resting at the broker (invariant 4). Entering it is instant, like any move toward safety. Leaving it is a risk-up move and follows FR-12 like any other: an owner command, a one-time code and the standard delay (FR-25, invariant 3).
 - **FR-29 (proposed)** Regime-anomaly detection that may only move the risk mode in the defensive direction. It never raises risk or leaves a defensive mode. It is subject to FR-13 and invariant 3, so LLMs never trigger mode changes.
-- **FR-30 (proposed)** An improvement loop in which agents propose changes only as pull requests. Each change goes through pre-registration (FR-6, invariant 7), a paper forward test (FR-5) and owner approval before merge. Nothing self-modifies in live.
+- **FR-30 (proposed)** An improvement loop in which agents propose changes only as pull requests. Each change goes through pre-registration (FR-6, invariant 7), a paper forward test (FR-5) and owner approval before merge. Nothing self-modifies in live. *Owner note (2026-11-25, proposed):* RD-Agent and gs-quant as design references only, and Kronos as a Phase 4 candidate signal, forward-logged only (invariant 8).
 
 ## 4. Non-functional requirements
 
