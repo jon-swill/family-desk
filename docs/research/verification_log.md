@@ -7,6 +7,7 @@ One row per original verify marker (11 in total: 7 in FAILURE_LIBRARY, 4 in NEWS
 | # | Entry | Claim | Original text | Primary source URL | Accessed | Verdict | Change made |
 |---|---|---|---|---|---|---|---|
 | 1 | F-05 | Robinhood outage on high-volume days (March 2020); broker buying restrictions on specific stocks (Jan 2021) | "Retail brokers have had outages on high-volume days (e.g. Robinhood, March 2020) and imposed buying restrictions on specific stocks (Jan 2021)." | https://www.finra.org/sites/default/files/2021-06/robinhood-financial-awc-063021.pdf (FINRA AWC 2020066971201: 2–3 Mar 2020 outage, all customers unable to trade; 9 Mar 45-minute outage); https://www.sec.gov/files/staff-report-equity-options-market-struction-conditions-early-2021.pdf (SEC staff report 14 Oct 2021, §3.6: purchase restrictions on 8 stocks 28 Jan 2021, attributed to NSCC margin calls) | 2026-11-25 | confirmed | Marker removed; dated facts and both citations added inline |
+| 2 | F-06 | 6 May 2010: many stocks and ETFs briefly collapsed, some trading at pennies, then recovered | "Prices of many stocks and ETFs briefly collapsed, some trading at pennies, then recovered." | https://www.sec.gov/news/studies/2010/marketevents-report.pdf (Findings Regarding the Market Events of May 6, 2010, CFTC and SEC staffs, 30 Sep 2010, Executive Summary pp. 1–2) | 2026-11-25 | confirmed | Marker removed; figures (5–6% index drop, >20,000 trades in >300 securities at ≥60% away, penny prints, trades broken) and citation added |
 
 ## 2. FAILURE_LIBRARY and proposals link fixes (A1)
 
